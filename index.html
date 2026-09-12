@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Generador de AFN-λ | Teoría de la Computación</title>
+  <link rel="icon" type="image/png" href="lambda_logo.png">
   <style>
     :root {
       --primary: #1a56db;
@@ -41,8 +43,30 @@
     }
 
     header {
-      text-align: center;
       margin-bottom: 24px;
+    }
+
+    .header-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .header-logo {
+      width: 72px;
+      height: 72px;
+      object-fit: contain;
+      border-radius: 14px;
+      background: #ffffff;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      border: 1px solid var(--border);
+      padding: 6px;
+    }
+
+    .header-titles {
+      text-align: left;
     }
 
     header h1 {
@@ -67,6 +91,16 @@
       font-size: 0.8rem;
       font-weight: 600;
       margin-top: 6px;
+    }
+
+    @media (max-width: 640px) {
+      .header-container {
+        flex-direction: column;
+        text-align: center;
+      }
+      .header-titles {
+        text-align: center;
+      }
     }
 
     .card {
@@ -242,7 +276,7 @@
       padding: 6px;
       border-radius: 8px;
       border: 1px solid var(--border);
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     }
 
     .graph-controls button {
@@ -299,7 +333,8 @@
       text-align: center;
     }
 
-    table.matrix-table th, table.matrix-table td {
+    table.matrix-table th,
+    table.matrix-table td {
       border: 1px solid var(--border);
       padding: 10px 14px;
     }
@@ -425,738 +460,801 @@
     }
   </style>
 </head>
+
 <body>
 
-<div class="container">
-  <header>
-    <h1>Generador de AFN-λ desde Expresiones Regulares</h1>
-    <p>Autómata Finito No Determinista con Transiciones Lambda</p>
-    <div class="badge-book">Teoría de la Computación — Rodrigo De Castro Korgi (Cap. 2)</div>
-  </header>
+  <div class="container">
+    <header>
+      <div class="header-container">
+        <img src="lambda_logo.png" alt="Logo Lambda" class="header-logo">
+        <div class="header-titles">
+          <h1>Generador de AFN-λ desde Expresiones Regulares</h1>
+          <p>Autómata Finito No Determinista con Transiciones Lambda</p>
+          <div class="badge-book">Teoría de la Computación — Rodrigo De Castro Korgi (Cap. 2)</div>
+        </div>
+      </div>
+    </header>
 
-  <!-- Panel de Entrada -->
-  <div class="card input-section">
-    <div class="input-row">
-      <input type="text" id="regex-input" value="a*(ab|ba)*" placeholder="Escribe la expresión regular (ej. (a|b)*b)" autocomplete="off">
-      <button class="btn btn-primary" id="btn-generate">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-        Generar Autómata
-      </button>
+    <!-- Panel de Entrada -->
+    <div class="card input-section">
+      <div class="input-row">
+        <input type="text" id="regex-input" value="a*(ab|ba)*" placeholder="Escribe la expresión regular (ej. (a|b)*b)"
+          autocomplete="off">
+        <button class="btn btn-primary" id="btn-generate">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          Generar Autómata
+        </button>
+      </div>
+
+      <div class="quick-keys">
+        <span>Insertar:</span>
+        <button class="key-btn" data-val="λ">λ </button>
+        <button class="key-btn" data-val="|">∪ / | </button>
+        <button class="key-btn" data-val="*">* </button>
+        <button class="key-btn" data-val="+">+</button>
+        <button class="key-btn" data-val="(">(</button>
+        <button class="key-btn" data-val=")">)</button>
+      </div>
+
+      <div class="examples-select">
+        <label for="examples-dropdown" style="font-size: 0.85rem; color: var(--text-muted);">Ejemplos del libro:</label>
+        <select id="examples-dropdown">
+          <option value="a*(ab|ba)*">a*(ab|ba)* (Sección 2.9)</option>
+          <option value="(a|b)*b">(a|b)*b (Terminan en 'b', Sec. 2.4)</option>
+          <option value="(0|1)*00(0|1)*">(0|1)*00(0|1)* (Contienen '00')</option>
+          <option value="a(b|c)*">a(b|c)*</option>
+          <option value="(ab|ba)*">(ab|ba)*</option>
+          <option value="b*ab*ab*">b*ab*ab* (Exactamente dos aes, Sec. 2.3)</option>
+        </select>
+      </div>
     </div>
 
-    <div class="quick-keys">
-      <span>Insertar:</span>
-      <button class="key-btn" data-val="λ">λ (cadena vacía)</button>
-      <button class="key-btn" data-val="|">∪ / | (unión)</button>
-      <button class="key-btn" data-val="*">* (estrella)</button>
-      <button class="key-btn" data-val="+">+ (positiva)</button>
-      <button class="key-btn" data-val="(">(</button>
-      <button class="key-btn" data-val=")">)</button>
+    <!-- Tabs de Visualización -->
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="tab-graph">1. Grafo (Diagrama)</button>
+      <button class="tab-btn" data-tab="tab-matrix">2. Matriz de Transiciones</button>
+      <button class="tab-btn" data-tab="tab-delta">3. Función Formal Δ(Q, Σ)</button>
     </div>
 
-    <div class="examples-select">
-      <label for="examples-dropdown" style="font-size: 0.85rem; color: var(--text-muted);">Ejemplos del libro:</label>
-      <select id="examples-dropdown">
-        <option value="a*(ab|ba)*">a*(ab|ba)* (Sección 2.9)</option>
-        <option value="(a|b)*b">(a|b)*b (Terminan en 'b', Sec. 2.4)</option>
-        <option value="(0|1)*00(0|1)*">(0|1)*00(0|1)* (Contienen '00')</option>
-        <option value="a(b|c)*">a(b|c)*</option>
-        <option value="(ab|ba)*">(ab|ba)*</option>
-        <option value="b*ab*ab*">b*ab*ab* (Exactamente dos aes, Sec. 2.3)</option>
-      </select>
+    <!-- Contenido Tab 1: Grafo -->
+    <div id="tab-graph" class="tab-content active">
+      <div class="card">
+        <div id="graph-container">
+          <canvas id="graph-canvas"></canvas>
+          <div class="graph-controls">
+            <button id="btn-zoom-in">+</button>
+            <button id="btn-zoom-out">-</button>
+            <button id="btn-reset-zoom">Centrar</button>
+          </div>
+        </div>
+
+        <div class="graph-legend">
+          <div class="legend-item">
+            <div class="legend-circle"></div>
+            <span>Estado normal</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-circle legend-final"></div>
+            <span>Estado de aceptación (F)</span>
+          </div>
+          <div class="legend-item">
+            <span style="font-weight: bold; color: var(--primary);">➔ q0</span>
+            <span>Estado inicial</span>
+          </div>
+          <div class="legend-item">
+            <span style="color: #64748b;">(Puedes arrastrar los estados para reorganizarlos libremente)</span>
+          </div>
+        </div>
+
+        <!-- Simulador de Cadenas -->
+        <div class="simulator-box">
+          <h3 style="font-size: 1rem; color: #1e293b;">Simulador de Cadenas en el AFN-λ</h3>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">Prueba si una cadena es aceptada o rechazada por este
+            autómata:</p>
+          <div class="sim-row">
+            <input type="text" id="sim-input" placeholder="Ej. aab, b, etc. (Dejar vacío para cadena vacía λ)">
+            <button class="btn btn-primary" id="btn-test-string">Evaluar Cadena</button>
+          </div>
+          <div id="sim-result" class="sim-result"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contenido Tab 2: Matriz -->
+    <div id="tab-matrix" class="tab-content">
+      <div class="card">
+        <h2 style="font-size: 1.2rem; margin-bottom: 12px; color: #0f172a;">Matriz de Transiciones</h2>
+        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 16px;">
+          En cada celda se muestra el subconjunto de estados destino $\Delta(q, s)$. El símbolo <code>∅</code> indica
+          que la transición no está definida (cómputo abortado).
+        </p>
+        <div class="table-responsive" id="matrix-container">
+          <!-- Tabla generada dinámicamente -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Contenido Tab 3: Función Delta -->
+    <div id="tab-delta" class="tab-content">
+      <div class="card">
+        <div class="formal-card">
+          <div class="formal-title">Quíntupla Formal del Autómata: M = (Σ, Q, q₀, F, Δ)</div>
+          <ul class="formal-list" id="formal-details">
+            <!-- Detalles formales inyectados por JS -->
+          </ul>
+        </div>
+
+        <h2 style="font-size: 1.15rem; margin-bottom: 8px; color: #0f172a;">
+          Valores explícitos de la Función de Transición: Δ : Q × (Σ ∪ {λ}) ➔ ℘(Q)
+        </h2>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+          Se detallan únicamente las transiciones activas no vacías:
+        </p>
+        <div class="delta-grid" id="delta-grid-container">
+          <!-- Tarjetas de transiciones -->
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Tabs de Visualización -->
-  <div class="tabs">
-    <button class="tab-btn active" data-tab="tab-graph">1. Grafo (Diagrama)</button>
-    <button class="tab-btn" data-tab="tab-matrix">2. Matriz de Transiciones</button>
-    <button class="tab-btn" data-tab="tab-delta">3. Función Formal Δ(Q, Σ)</button>
-  </div>
+  <script>
+    // ============================================================================
+    // NÚCLEO DE LA CONSTRUCCIÓN DE THOMPSON (AFN-λ)
+    // ============================================================================
+    const LAMBDA = "λ";
 
-  <!-- Contenido Tab 1: Grafo -->
-  <div id="tab-graph" class="tab-content active">
-    <div class="card">
-      <div id="graph-container">
-        <canvas id="graph-canvas"></canvas>
-        <div class="graph-controls">
-          <button id="btn-zoom-in">+</button>
-          <button id="btn-zoom-out">-</button>
-          <button id="btn-reset-zoom">Centrar</button>
-        </div>
-      </div>
-
-      <div class="graph-legend">
-        <div class="legend-item">
-          <div class="legend-circle"></div>
-          <span>Estado normal</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-circle legend-final"></div>
-          <span>Estado de aceptación (F)</span>
-        </div>
-        <div class="legend-item">
-          <span style="font-weight: bold; color: var(--primary);">➔ q0</span>
-          <span>Estado inicial</span>
-        </div>
-        <div class="legend-item">
-          <span style="color: #64748b;">(Puedes arrastrar los estados para reorganizarlos libremente)</span>
-        </div>
-      </div>
-
-      <!-- Simulador de Cadenas -->
-      <div class="simulator-box">
-        <h3 style="font-size: 1rem; color: #1e293b;">Simulador de Cadenas en el AFN-λ</h3>
-        <p style="font-size: 0.85rem; color: var(--text-muted);">Prueba si una cadena es aceptada o rechazada por este autómata:</p>
-        <div class="sim-row">
-          <input type="text" id="sim-input" placeholder="Ej. aab, b, etc. (Dejar vacío para cadena vacía λ)">
-          <button class="btn btn-primary" id="btn-test-string">Evaluar Cadena</button>
-        </div>
-        <div id="sim-result" class="sim-result"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Contenido Tab 2: Matriz -->
-  <div id="tab-matrix" class="tab-content">
-    <div class="card">
-      <h2 style="font-size: 1.2rem; margin-bottom: 12px; color: #0f172a;">Matriz de Transiciones</h2>
-      <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 16px;">
-        En cada celda se muestra el subconjunto de estados destino $\Delta(q, s)$. El símbolo <code>∅</code> indica que la transición no está definida (cómputo abortado).
-      </p>
-      <div class="table-responsive" id="matrix-container">
-        <!-- Tabla generada dinámicamente -->
-      </div>
-    </div>
-  </div>
-
-  <!-- Contenido Tab 3: Función Delta -->
-  <div id="tab-delta" class="tab-content">
-    <div class="card">
-      <div class="formal-card">
-        <div class="formal-title">Quíntupla Formal del Autómata: M = (Σ, Q, q₀, F, Δ)</div>
-        <ul class="formal-list" id="formal-details">
-          <!-- Detalles formales inyectados por JS -->
-        </ul>
-      </div>
-
-      <h2 style="font-size: 1.15rem; margin-bottom: 8px; color: #0f172a;">
-        Valores explícitos de la Función de Transición: Δ : Q × (Σ ∪ {λ}) ➔ ℘(Q)
-      </h2>
-      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
-        Se detallan únicamente las transiciones activas no vacías:
-      </p>
-      <div class="delta-grid" id="delta-grid-container">
-        <!-- Tarjetas de transiciones -->
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-// ============================================================================
-// NÚCLEO DE LA CONSTRUCCIÓN DE THOMPSON (AFN-λ)
-// ============================================================================
-const LAMBDA = "λ";
-
-class FragmentoAFN {
-  constructor(start, accept, transitions) {
-    this.start = start;
-    this.accept = accept;
-    this.transitions = transitions; // array de [u, symb, v]
-  }
-}
-
-class GeneradorAFNJS {
-  constructor() {
-    this.stateCounter = 0;
-  }
-
-  nuevoEstado() {
-    return this.stateCounter++;
-  }
-
-  normalizarRegex(er) {
-    er = er.trim();
-    er = er.replaceAll("\\lambda", LAMBDA)
-           .replaceAll("\\L", LAMBDA)
-           .replaceAll("lambda", LAMBDA)
-           .replaceAll("eps", LAMBDA);
-
-    let res = "";
-    for (let c of er) {
-      if (c === "U" || c === "u" || c === "|") {
-        res += "|";
-      } else {
-        res += c;
+    class FragmentoAFN {
+      constructor(start, accept, transitions) {
+        this.start = start;
+        this.accept = accept;
+        this.transitions = transitions; // array de [u, symb, v]
       }
     }
-    return res;
-  }
 
-  insertarConcatenacionExplicita(er) {
-    let res = "";
-    for (let i = 0; i < er.length; i++) {
-      let c1 = er[i];
-      res += c1;
-      if (i + 1 < er.length) {
-        let c2 = er[i + 1];
-        let esC1Fin = c1 !== "|" && c1 !== "(" && c1 !== "·";
-        let esC2Ini = c2 !== "|" && c2 !== ")" && c2 !== "*" && c2 !== "+" && c2 !== "·";
-        if (esC1Fin && esC2Ini) {
-          res += "·";
+    class GeneradorAFNJS {
+      constructor() {
+        this.stateCounter = 0;
+      }
+
+      nuevoEstado() {
+        return this.stateCounter++;
+      }
+
+      normalizarRegex(er) {
+        er = er.trim();
+        er = er.replaceAll("\\lambda", LAMBDA)
+          .replaceAll("\\L", LAMBDA)
+          .replaceAll("lambda", LAMBDA)
+          .replaceAll("eps", LAMBDA);
+
+        let res = "";
+        for (let c of er) {
+          if (c === "U" || c === "u" || c === "|") {
+            res += "|";
+          } else {
+            res += c;
+          }
+        }
+        return res;
+      }
+
+      insertarConcatenacionExplicita(er) {
+        let res = "";
+        for (let i = 0; i < er.length; i++) {
+          let c1 = er[i];
+          res += c1;
+          if (i + 1 < er.length) {
+            let c2 = er[i + 1];
+            let esC1Fin = c1 !== "|" && c1 !== "(" && c1 !== "·";
+            let esC2Ini = c2 !== "|" && c2 !== ")" && c2 !== "*" && c2 !== "+" && c2 !== "·";
+            if (esC1Fin && esC2Ini) {
+              res += "·";
+            }
+          }
+        }
+        return res;
+      }
+
+      infijoAPostfijo(er) {
+        const prec = { "*": 3, "+": 3, "·": 2, "|": 1 };
+        let salida = [];
+        let operadores = [];
+
+        for (let i = 0; i < er.length; i++) {
+          let c = er[i];
+          if (/\s/.test(c)) continue;
+
+          if (/[a-zA-Z0-9]/.test(c) || c === LAMBDA || c === "#" || c === "@" || c === "_") {
+            salida.push(c);
+          } else if (c === "(") {
+            operadores.push(c);
+          } else if (c === ")") {
+            while (operadores.length > 0 && operadores[operadores.length - 1] !== "(") {
+              salida.push(operadores.pop());
+            }
+            if (operadores.length === 0) throw new Error("Paréntesis desbalanceados");
+            operadores.pop(); // Sacar '('
+          } else if (c in prec) {
+            while (
+              operadores.length > 0 &&
+              operadores[operadores.length - 1] !== "(" &&
+              prec[operadores[operadores.length - 1]] >= prec[c]
+            ) {
+              salida.push(operadores.pop());
+            }
+            operadores.push(c);
+          } else {
+            salida.push(c);
+          }
+        }
+
+        while (operadores.length > 0) {
+          let op = operadores.pop();
+          if (op === "(") throw new Error("Paréntesis desbalanceados");
+          salida.push(op);
+        }
+
+        return salida;
+      }
+
+      construir(erTexto) {
+        if (!erTexto || erTexto.trim() === "") throw new Error("La expresión regular no puede estar vacía");
+        let erNorm = this.normalizarRegex(erTexto);
+        let erCat = this.insertarConcatenacionExplicita(erNorm);
+        let postfijo = this.infijoAPostfijo(erCat);
+
+        this.stateCounter = 0;
+        let pila = [];
+        let alfabeto = new Set();
+
+        for (let token of postfijo) {
+          if (token === "|") {
+            if (pila.length < 2) throw new Error("Error en unión '|'");
+            let b = pila.pop();
+            let a = pila.pop();
+            let sIni = this.nuevoEstado();
+            let sFin = this.nuevoEstado();
+            let trans = [...a.transitions, ...b.transitions];
+            trans.push([sIni, LAMBDA, a.start]);
+            trans.push([sIni, LAMBDA, b.start]);
+            trans.push([a.accept, LAMBDA, sFin]);
+            trans.push([b.accept, LAMBDA, sFin]);
+            pila.push(new FragmentoAFN(sIni, sFin, trans));
+          } else if (token === "·") {
+            if (pila.length < 2) throw new Error("Error en concatenación");
+            let b = pila.pop();
+            let a = pila.pop();
+            let trans = [...a.transitions, ...b.transitions];
+            trans.push([a.accept, LAMBDA, b.start]);
+            pila.push(new FragmentoAFN(a.start, b.accept, trans));
+          } else if (token === "*") {
+            if (pila.length < 1) throw new Error("Error en estrella '*'");
+            let a = pila.pop();
+            let sIni = this.nuevoEstado();
+            let sFin = this.nuevoEstado();
+            let trans = [...a.transitions];
+            trans.push([sIni, LAMBDA, sFin]);
+            trans.push([sIni, LAMBDA, a.start]);
+            trans.push([a.accept, LAMBDA, a.start]);
+            trans.push([a.accept, LAMBDA, sFin]);
+            pila.push(new FragmentoAFN(sIni, sFin, trans));
+          } else if (token === "+") {
+            if (pila.length < 1) throw new Error("Error en '+'");
+            let a = pila.pop();
+            let sIni = this.nuevoEstado();
+            let sFin = this.nuevoEstado();
+            let trans = [...a.transitions];
+            trans.push([sIni, LAMBDA, a.start]);
+            trans.push([a.accept, LAMBDA, a.start]);
+            trans.push([a.accept, LAMBDA, sFin]);
+            pila.push(new FragmentoAFN(sIni, sFin, trans));
+          } else {
+            let sIni = this.nuevoEstado();
+            let sFin = this.nuevoEstado();
+            if (token !== LAMBDA) alfabeto.add(token);
+            pila.push(new FragmentoAFN(sIni, sFin, [[sIni, token, sFin]]));
+          }
+        }
+
+        if (pila.length !== 1) throw new Error("Expresión regular mal formada");
+        let frag = pila.pop();
+
+        return this.renombrarCanonicamente(frag, Array.from(alfabeto).sort(), erTexto);
+      }
+
+      renombrarCanonicamente(frag, alfabeto, erTexto) {
+        let mapa = new Map();
+        let cola = [frag.start];
+        mapa.set(frag.start, "q0");
+        let contador = 1;
+
+        let ady = new Map();
+        for (let [u, _, v] of frag.transitions) {
+          if (!ady.has(u)) ady.set(u, []);
+          ady.get(u).push(v);
+        }
+
+        while (cola.length > 0) {
+          let u = cola.shift();
+          for (let v of (ady.get(u) || [])) {
+            if (!mapa.has(v)) {
+              mapa.set(v, `q${contador++}`);
+              cola.push(v);
+            }
+          }
+        }
+
+        let todos = new Set([frag.start, frag.accept]);
+        for (let [u, _, v] of frag.transitions) {
+          todos.add(u);
+          todos.add(v);
+        }
+        for (let s of Array.from(todos).sort((a, b) => a - b)) {
+          if (!mapa.has(s)) {
+            mapa.set(s, `q${contador++}`);
+          }
+        }
+
+        let Q = Array.from(mapa.values()).sort((a, b) => parseInt(a.slice(1)) - parseInt(b.slice(1)));
+        let trans = frag.transitions.map(([u, s, v]) => [mapa.get(u), s, mapa.get(v)]);
+        trans.sort((a, b) => {
+          let na = parseInt(a[0].slice(1)), nb = parseInt(b[0].slice(1));
+          if (na !== nb) return na - nb;
+          if (a[1] !== b[1]) return a[1].localeCompare(b[1]);
+          return parseInt(a[2].slice(1)) - parseInt(b[2].slice(1));
+        });
+
+        let q0 = "q0";
+        let F = new Set([mapa.get(frag.accept)]);
+
+        return {
+          er: erTexto,
+          Q,
+          Sigma: alfabeto,
+          q0,
+          F,
+          transiciones: trans
+        };
+      }
+    }
+
+    // ============================================================================
+    // EVALUACIÓN DE CADENAS (SIMULADOR CON TRAZA PASO A PASO)
+    // ============================================================================
+    let highlightedStates = new Set();
+
+    function evaluarCadenaAFN(afn, cadena) {
+      function clausura(estados) {
+        let res = new Set(estados);
+        let pila = Array.from(estados);
+        while (pila.length > 0) {
+          let curr = pila.pop();
+          for (let [u, s, v] of afn.transiciones) {
+            if (u === curr && s === LAMBDA && !res.has(v)) {
+              res.add(v);
+              pila.push(v);
+            }
+          }
+        }
+        return res;
+      }
+
+      const ordenarEstados = (setEst) =>
+        Array.from(setEst).sort((a, b) => parseInt(a.slice(1)) - parseInt(b.slice(1)));
+
+      let pasos = [];
+      let inicial = clausura(new Set([afn.q0]));
+      pasos.push({
+        paso: 0,
+        accion: `Inicio en q₀ y cálculo de λ-clausura`,
+        estados: ordenarEstados(inicial)
+      });
+
+      let actuales = inicial;
+      let simboloInvalido = null;
+      let abortado = false;
+
+      for (let i = 0; i < cadena.length; i++) {
+        let c = cadena[i];
+        if (!afn.Sigma.includes(c)) {
+          simboloInvalido = c;
+          break;
+        }
+
+        let siguientes = new Set();
+        for (let q of actuales) {
+          for (let [u, s, v] of afn.transiciones) {
+            if (u === q && s === c) {
+              siguientes.add(v);
+            }
+          }
+        }
+
+        actuales = clausura(siguientes);
+        pasos.push({
+          paso: i + 1,
+          accion: `Consumiendo símbolo '${c}' (y expansión por transiciones λ)`,
+          estados: ordenarEstados(actuales)
+        });
+
+        if (actuales.size === 0) {
+          abortado = true;
+          break;
         }
       }
+
+      let finalesAlcanzados = Array.from(actuales).filter(q => afn.F.has(q));
+      let aceptada = !simboloInvalido && !abortado && finalesAlcanzados.length > 0;
+
+      return {
+        aceptada,
+        simboloInvalido,
+        abortado,
+        pasos,
+        finalesAlcanzados,
+        estadosFinales: ordenarEstados(actuales)
+      };
     }
-    return res;
-  }
 
-  infijoAPostfijo(er) {
-    const prec = { "*": 3, "+": 3, "·": 2, "|": 1 };
-    let salida = [];
-    let operadores = [];
+    // ============================================================================
+    // VISUALIZADOR DE GRAFO (CANVAS CON FÍSICA Y ARRASTRE)
+    // ============================================================================
+    let currentAFN = null;
+    let nodePositions = new Map();
+    let canvas = document.getElementById("graph-canvas");
+    let ctx = canvas.getContext("2d");
+    let zoom = 1;
+    let pan = { x: 0, y: 0 };
+    let isDragging = false;
+    let draggedNode = null;
+    let lastMousePos = { x: 0, y: 0 };
 
-    for (let i = 0; i < er.length; i++) {
-      let c = er[i];
-      if (/\s/.test(c)) continue;
+    function initCanvas() {
+      const container = document.getElementById("graph-container");
+      canvas.width = container.clientWidth * window.devicePixelRatio;
+      canvas.height = container.clientHeight * window.devicePixelRatio;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    }
 
-      if (/[a-zA-Z0-9]/.test(c) || c === LAMBDA || c === "#" || c === "@" || c === "_") {
-        salida.push(c);
-      } else if (c === "(") {
-        operadores.push(c);
-      } else if (c === ")") {
-        while (operadores.length > 0 && operadores[operadores.length - 1] !== "(") {
-          salida.push(operadores.pop());
-        }
-        if (operadores.length === 0) throw new Error("Paréntesis desbalanceados");
-        operadores.pop(); // Sacar '('
-      } else if (c in prec) {
-        while (
-          operadores.length > 0 &&
-          operadores[operadores.length - 1] !== "(" &&
-          prec[operadores[operadores.length - 1]] >= prec[c]
-        ) {
-          salida.push(operadores.pop());
-        }
-        operadores.push(c);
-      } else {
-        salida.push(c);
+    function layoutNodes(afn) {
+      nodePositions.clear();
+      const n = afn.Q.length;
+      const container = document.getElementById("graph-container");
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+
+      // Organizar estados en capas de izquierda a derecha (usando BFS)
+      let niveles = new Map();
+      niveles.set(afn.q0, 0);
+      let cola = [afn.q0];
+      let visitados = new Set([afn.q0]);
+
+      let ady = new Map();
+      for (let [u, _, v] of afn.transiciones) {
+        if (!ady.has(u)) ady.set(u, []);
+        ady.get(u).push(v);
       }
-    }
 
-    while (operadores.length > 0) {
-      let op = operadores.pop();
-      if (op === "(") throw new Error("Paréntesis desbalanceados");
-      salida.push(op);
-    }
-
-    return salida;
-  }
-
-  construir(erTexto) {
-    if (!erTexto || erTexto.trim() === "") throw new Error("La expresión regular no puede estar vacía");
-    let erNorm = this.normalizarRegex(erTexto);
-    let erCat = this.insertarConcatenacionExplicita(erNorm);
-    let postfijo = this.infijoAPostfijo(erCat);
-
-    this.stateCounter = 0;
-    let pila = [];
-    let alfabeto = new Set();
-
-    for (let token of postfijo) {
-      if (token === "|") {
-        if (pila.length < 2) throw new Error("Error en unión '|'");
-        let b = pila.pop();
-        let a = pila.pop();
-        let sIni = this.nuevoEstado();
-        let sFin = this.nuevoEstado();
-        let trans = [...a.transitions, ...b.transitions];
-        trans.push([sIni, LAMBDA, a.start]);
-        trans.push([sIni, LAMBDA, b.start]);
-        trans.push([a.accept, LAMBDA, sFin]);
-        trans.push([b.accept, LAMBDA, sFin]);
-        pila.push(new FragmentoAFN(sIni, sFin, trans));
-      } else if (token === "·") {
-        if (pila.length < 2) throw new Error("Error en concatenación");
-        let b = pila.pop();
-        let a = pila.pop();
-        let trans = [...a.transitions, ...b.transitions];
-        trans.push([a.accept, LAMBDA, b.start]);
-        pila.push(new FragmentoAFN(a.start, b.accept, trans));
-      } else if (token === "*") {
-        if (pila.length < 1) throw new Error("Error en estrella '*'");
-        let a = pila.pop();
-        let sIni = this.nuevoEstado();
-        let sFin = this.nuevoEstado();
-        let trans = [...a.transitions];
-        trans.push([sIni, LAMBDA, sFin]);
-        trans.push([sIni, LAMBDA, a.start]);
-        trans.push([a.accept, LAMBDA, a.start]);
-        trans.push([a.accept, LAMBDA, sFin]);
-        pila.push(new FragmentoAFN(sIni, sFin, trans));
-      } else if (token === "+") {
-        if (pila.length < 1) throw new Error("Error en '+'");
-        let a = pila.pop();
-        let sIni = this.nuevoEstado();
-        let sFin = this.nuevoEstado();
-        let trans = [...a.transitions];
-        trans.push([sIni, LAMBDA, a.start]);
-        trans.push([a.accept, LAMBDA, a.start]);
-        trans.push([a.accept, LAMBDA, sFin]);
-        pila.push(new FragmentoAFN(sIni, sFin, trans));
-      } else {
-        let sIni = this.nuevoEstado();
-        let sFin = this.nuevoEstado();
-        if (token !== LAMBDA) alfabeto.add(token);
-        pila.push(new FragmentoAFN(sIni, sFin, [[sIni, token, sFin]]));
-      }
-    }
-
-    if (pila.length !== 1) throw new Error("Expresión regular mal formada");
-    let frag = pila.pop();
-
-    return this.renombrarCanonicamente(frag, Array.from(alfabeto).sort(), erTexto);
-  }
-
-  renombrarCanonicamente(frag, alfabeto, erTexto) {
-    let mapa = new Map();
-    let cola = [frag.start];
-    mapa.set(frag.start, "q0");
-    let contador = 1;
-
-    let ady = new Map();
-    for (let [u, _, v] of frag.transitions) {
-      if (!ady.has(u)) ady.set(u, []);
-      ady.get(u).push(v);
-    }
-
-    while (cola.length > 0) {
-      let u = cola.shift();
-      for (let v of (ady.get(u) || [])) {
-        if (!mapa.has(v)) {
-          mapa.set(v, `q${contador++}`);
-          cola.push(v);
+      while (cola.length > 0) {
+        let u = cola.shift();
+        let lvl = niveles.get(u);
+        for (let v of (ady.get(u) || [])) {
+          if (!visitados.has(v)) {
+            visitados.add(v);
+            niveles.set(v, lvl + 1);
+            cola.push(v);
+          }
         }
       }
-    }
 
-    let todos = new Set([frag.start, frag.accept]);
-    for (let [u, _, v] of frag.transitions) {
-      todos.add(u);
-      todos.add(v);
-    }
-    for (let s of Array.from(todos).sort((a,b)=>a-b)) {
-      if (!mapa.has(s)) {
-        mapa.set(s, `q${contador++}`);
+      // Agrupar por nivel
+      let gruposNivel = new Map();
+      let maxLvl = 0;
+      for (let q of afn.Q) {
+        let lvl = niveles.get(q) || 0;
+        maxLvl = Math.max(maxLvl, lvl);
+        if (!gruposNivel.has(lvl)) gruposNivel.set(lvl, []);
+        gruposNivel.get(lvl).push(q);
       }
+
+      const paddingX = 80;
+      const pasoX = maxLvl > 0 ? (width - paddingX * 2) / maxLvl : 0;
+
+      for (let [lvl, nodos] of gruposNivel.entries()) {
+        let x = paddingX + lvl * Math.max(pasoX, 90);
+        let pasoY = height / (nodos.length + 1);
+        nodos.forEach((q, idx) => {
+          let y = pasoY * (idx + 1);
+          nodePositions.set(q, { x, y });
+        });
+      }
+
+      zoom = 1;
+      pan = { x: 0, y: 0 };
     }
 
-    let Q = Array.from(mapa.values()).sort((a,b) => parseInt(a.slice(1)) - parseInt(b.slice(1)));
-    let trans = frag.transitions.map(([u, s, v]) => [mapa.get(u), s, mapa.get(v)]);
-    trans.sort((a, b) => {
-      let na = parseInt(a[0].slice(1)), nb = parseInt(b[0].slice(1));
-      if (na !== nb) return na - nb;
-      if (a[1] !== b[1]) return a[1].localeCompare(b[1]);
-      return parseInt(a[2].slice(1)) - parseInt(b[2].slice(1));
-    });
-
-    let q0 = "q0";
-    let F = new Set([mapa.get(frag.accept)]);
-
-    return {
-      er: erTexto,
-      Q,
-      Sigma: alfabeto,
-      q0,
-      F,
-      transiciones: trans
-    };
-  }
-}
-
-// ============================================================================
-// EVALUACIÓN DE CADENAS (SIMULADOR)
-// ============================================================================
-function evaluarCadenaAFN(afn, cadena) {
-  function clausura(estados) {
-    let res = new Set(estados);
-    let pila = Array.from(estados);
-    while (pila.length > 0) {
-      let curr = pila.pop();
-      for (let [u, s, v] of afn.transiciones) {
-        if (u === curr && s === LAMBDA && !res.has(v)) {
-          res.add(v);
-          pila.push(v);
-        }
-      }
-    }
-    return res;
-  }
-
-  let actuales = clausura(new Set([afn.q0]));
-
-  for (let c of cadena) {
-    if (!afn.Sigma.includes(c)) return false;
-    let siguientes = new Set();
-    for (let q of actuales) {
-      for (let [u, s, v] of afn.transiciones) {
-        if (u === q && s === c) {
-          siguientes.add(v);
-        }
-      }
-    }
-    actuales = clausura(siguientes);
-    if (actuales.size === 0) return false;
-  }
-
-  for (let f of afn.F) {
-    if (actuales.has(f)) return true;
-  }
-  return false;
-}
-
-// ============================================================================
-// VISUALIZADOR DE GRAFO (CANVAS CON FÍSICA Y ARRASTRE)
-// ============================================================================
-let currentAFN = null;
-let nodePositions = new Map();
-let canvas = document.getElementById("graph-canvas");
-let ctx = canvas.getContext("2d");
-let zoom = 1;
-let pan = { x: 0, y: 0 };
-let isDragging = false;
-let draggedNode = null;
-let lastMousePos = { x: 0, y: 0 };
-
-function initCanvas() {
-  const container = document.getElementById("graph-container");
-  canvas.width = container.clientWidth * window.devicePixelRatio;
-  canvas.height = container.clientHeight * window.devicePixelRatio;
-  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-}
-
-function layoutNodes(afn) {
-  nodePositions.clear();
-  const n = afn.Q.length;
-  const container = document.getElementById("graph-container");
-  const width = container.clientWidth;
-  const height = container.clientHeight;
-
-  // Organizar estados en capas de izquierda a derecha (usando BFS)
-  let niveles = new Map();
-  niveles.set(afn.q0, 0);
-  let cola = [afn.q0];
-  let visitados = new Set([afn.q0]);
-
-  let ady = new Map();
-  for (let [u, _, v] of afn.transiciones) {
-    if (!ady.has(u)) ady.set(u, []);
-    ady.get(u).push(v);
-  }
-
-  while (cola.length > 0) {
-    let u = cola.shift();
-    let lvl = niveles.get(u);
-    for (let v of (ady.get(u) || [])) {
-      if (!visitados.has(v)) {
-        visitados.add(v);
-        niveles.set(v, lvl + 1);
-        cola.push(v);
-      }
-    }
-  }
-
-  // Agrupar por nivel
-  let gruposNivel = new Map();
-  let maxLvl = 0;
-  for (let q of afn.Q) {
-    let lvl = niveles.get(q) || 0;
-    maxLvl = Math.max(maxLvl, lvl);
-    if (!gruposNivel.has(lvl)) gruposNivel.set(lvl, []);
-    gruposNivel.get(lvl).push(q);
-  }
-
-  const paddingX = 80;
-  const pasoX = maxLvl > 0 ? (width - paddingX * 2) / maxLvl : 0;
-
-  for (let [lvl, nodos] of gruposNivel.entries()) {
-    let x = paddingX + lvl * Math.max(pasoX, 90);
-    let pasoY = height / (nodos.length + 1);
-    nodos.forEach((q, idx) => {
-      let y = pasoY * (idx + 1);
-      nodePositions.set(q, { x, y });
-    });
-  }
-
-  zoom = 1;
-  pan = { x: 0, y: 0 };
-}
-
-function drawGraph() {
-  const container = document.getElementById("graph-container");
-  const w = container.clientWidth;
-  const h = container.clientHeight;
-
-  ctx.save();
-  ctx.clearRect(0, 0, w, h);
-  ctx.translate(pan.x, pan.y);
-  ctx.scale(zoom, zoom);
-
-  if (!currentAFN) {
-    ctx.restore();
-    return;
-  }
-
-  const NODE_RADIUS = 22;
-
-  // Agrupar transiciones entre pares
-  let edgeMap = new Map();
-  for (let [u, s, v] of currentAFN.transiciones) {
-    let key = `${u}__${v}`;
-    if (!edgeMap.has(key)) edgeMap.set(key, { u, v, symbols: [] });
-    edgeMap.get(key).symbols.push(s);
-  }
-
-  // 1. Dibujar arcos
-  for (let { u, v, symbols } of edgeMap.values()) {
-    let p1 = nodePositions.get(u);
-    let p2 = nodePositions.get(v);
-    if (!p1 || !p2) continue;
-
-    let label = symbols.join(", ");
-    let isSelf = (u === v);
-
-    ctx.strokeStyle = "#64748b";
-    ctx.fillStyle = "#1e293b";
-    ctx.lineWidth = 1.8;
-    ctx.font = "bold 13px system-ui";
-
-    if (isSelf) {
-      // Bucle
-      let loopRadius = 18;
-      let cx = p1.x;
-      let cy = p1.y - NODE_RADIUS - loopRadius;
-      ctx.beginPath();
-      ctx.arc(cx, cy, loopRadius, 0, Math.PI * 2);
-      ctx.stroke();
-
-      // Flecha del bucle
-      drawArrowHead(cx + loopRadius, cy + 5, 0, 1);
-      ctx.fillText(label, cx, cy - loopRadius - 4);
-    } else {
-      // Arco dirigido
-      let hasReverse = edgeMap.has(`${v}__${u}`);
-      let dx = p2.x - p1.x;
-      let dy = p2.y - p1.y;
-      let dist = Math.sqrt(dx * dx + dy * dy);
-      let nx = dx / dist;
-      let ny = dy / dist;
-
-      let curvature = hasReverse ? 30 : 0;
-      let mx = (p1.x + p2.x) / 2 - ny * curvature;
-      let my = (p1.y + p2.y) / 2 + nx * curvature;
-
-      ctx.beginPath();
-      ctx.moveTo(p1.x + nx * NODE_RADIUS, p1.y + ny * NODE_RADIUS);
-      if (curvature !== 0) {
-        ctx.quadraticCurveTo(mx, my, p2.x - nx * NODE_RADIUS, p2.y - ny * NODE_RADIUS);
-      } else {
-        ctx.lineTo(p2.x - nx * NODE_RADIUS, p2.y - ny * NODE_RADIUS);
-      }
-      ctx.stroke();
-
-      // Cabeza de flecha
-      let endX = p2.x - nx * NODE_RADIUS;
-      let endY = p2.y - ny * NODE_RADIUS;
-      let dirX = curvature !== 0 ? endX - mx : nx;
-      let dirY = curvature !== 0 ? endY - my : ny;
-      let dLen = Math.sqrt(dirX * dirX + dirY * dirY);
-      drawArrowHead(endX, endY, dirX / dLen, dirY / dLen);
-
-      // Texto de etiqueta con fondo blanco para legibilidad
-      let textX = (p1.x + p2.x) / 2 - ny * (curvature * 0.7);
-      let textY = (p1.y + p2.y) / 2 + nx * (curvature * 0.7) - 6;
+    function drawGraph() {
+      const container = document.getElementById("graph-container");
+      const w = container.clientWidth;
+      const h = container.clientHeight;
 
       ctx.save();
-      let metrics = ctx.measureText(label);
-      ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
-      ctx.fillRect(textX - metrics.width / 2 - 3, textY - 11, metrics.width + 6, 15);
-      ctx.fillStyle = "#0f172a";
-      ctx.textAlign = "center";
-      ctx.fillText(label, textX, textY);
+      ctx.clearRect(0, 0, w, h);
+      ctx.translate(pan.x, pan.y);
+      ctx.scale(zoom, zoom);
+
+      if (!currentAFN) {
+        ctx.restore();
+        return;
+      }
+
+      const NODE_RADIUS = 22;
+
+      // Agrupar transiciones entre pares
+      let edgeMap = new Map();
+      for (let [u, s, v] of currentAFN.transiciones) {
+        let key = `${u}__${v}`;
+        if (!edgeMap.has(key)) edgeMap.set(key, { u, v, symbols: [] });
+        edgeMap.get(key).symbols.push(s);
+      }
+
+      // 1. Dibujar arcos
+      for (let { u, v, symbols } of edgeMap.values()) {
+        let p1 = nodePositions.get(u);
+        let p2 = nodePositions.get(v);
+        if (!p1 || !p2) continue;
+
+        let label = symbols.join(", ");
+        let isSelf = (u === v);
+
+        ctx.strokeStyle = "#64748b";
+        ctx.fillStyle = "#1e293b";
+        ctx.lineWidth = 1.8;
+        ctx.font = "bold 13px system-ui";
+
+        if (isSelf) {
+          // Bucle
+          let loopRadius = 18;
+          let cx = p1.x;
+          let cy = p1.y - NODE_RADIUS - loopRadius;
+          ctx.beginPath();
+          ctx.arc(cx, cy, loopRadius, 0, Math.PI * 2);
+          ctx.stroke();
+
+          // Flecha del bucle
+          drawArrowHead(cx + loopRadius, cy + 5, 0, 1);
+          ctx.fillText(label, cx, cy - loopRadius - 4);
+        } else {
+          // Arco dirigido
+          let hasReverse = edgeMap.has(`${v}__${u}`);
+          let dx = p2.x - p1.x;
+          let dy = p2.y - p1.y;
+          let dist = Math.sqrt(dx * dx + dy * dy);
+          let nx = dx / dist;
+          let ny = dy / dist;
+
+          let curvature = hasReverse ? 30 : 0;
+          let mx = (p1.x + p2.x) / 2 - ny * curvature;
+          let my = (p1.y + p2.y) / 2 + nx * curvature;
+
+          ctx.beginPath();
+          ctx.moveTo(p1.x + nx * NODE_RADIUS, p1.y + ny * NODE_RADIUS);
+          if (curvature !== 0) {
+            ctx.quadraticCurveTo(mx, my, p2.x - nx * NODE_RADIUS, p2.y - ny * NODE_RADIUS);
+          } else {
+            ctx.lineTo(p2.x - nx * NODE_RADIUS, p2.y - ny * NODE_RADIUS);
+          }
+          ctx.stroke();
+
+          // Cabeza de flecha
+          let endX = p2.x - nx * NODE_RADIUS;
+          let endY = p2.y - ny * NODE_RADIUS;
+          let dirX = curvature !== 0 ? endX - mx : nx;
+          let dirY = curvature !== 0 ? endY - my : ny;
+          let dLen = Math.sqrt(dirX * dirX + dirY * dirY);
+          drawArrowHead(endX, endY, dirX / dLen, dirY / dLen);
+
+          // Texto de etiqueta con fondo blanco para legibilidad
+          let textX = (p1.x + p2.x) / 2 - ny * (curvature * 0.7);
+          let textY = (p1.y + p2.y) / 2 + nx * (curvature * 0.7) - 6;
+
+          ctx.save();
+          let metrics = ctx.measureText(label);
+          ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+          ctx.fillRect(textX - metrics.width / 2 - 3, textY - 11, metrics.width + 6, 15);
+          ctx.fillStyle = "#0f172a";
+          ctx.textAlign = "center";
+          ctx.fillText(label, textX, textY);
+          ctx.restore();
+        }
+      }
+
+      // 2. Dibujar nodos
+      for (let q of currentAFN.Q) {
+        let p = nodePositions.get(q);
+        if (!p) continue;
+
+        let isFinal = currentAFN.F.has(q);
+        let isInitial = (q === currentAFN.q0);
+
+        // Flecha de estado inicial
+        if (isInitial) {
+          ctx.strokeStyle = "#1a56db";
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.moveTo(p.x - NODE_RADIUS - 30, p.y);
+          ctx.lineTo(p.x - NODE_RADIUS, p.y);
+          ctx.stroke();
+          drawArrowHead(p.x - NODE_RADIUS, p.y, 1, 0, "#1a56db");
+        }
+
+        // Resaltado de estados alcanzados en la evaluación de cadena
+        let isHighlighted = highlightedStates.has(q);
+        if (isHighlighted) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, NODE_RADIUS + 7, 0, Math.PI * 2);
+          ctx.fillStyle = isFinal ? "rgba(16, 185, 129, 0.25)" : "rgba(239, 68, 68, 0.2)";
+          ctx.fill();
+          ctx.lineWidth = 2.5;
+          ctx.setLineDash([4, 3]);
+          ctx.strokeStyle = isFinal ? "#10b981" : "#ef4444";
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // Círculo principal
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, NODE_RADIUS, 0, Math.PI * 2);
+        ctx.fillStyle = isFinal ? "#ecfdf5" : "#eff6ff";
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = isFinal ? "#10b981" : "#3b82f6";
+        ctx.stroke();
+
+        // Si es final, doble círculo
+        if (isFinal) {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, NODE_RADIUS - 4, 0, Math.PI * 2);
+          ctx.strokeStyle = "#10b981";
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+
+        // Etiqueta del nodo
+        ctx.fillStyle = "#0f172a";
+        ctx.font = "bold 13px system-ui";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(q, p.x, p.y);
+      }
+
       ctx.restore();
     }
-  }
 
-  // 2. Dibujar nodos
-  for (let q of currentAFN.Q) {
-    let p = nodePositions.get(q);
-    if (!p) continue;
-
-    let isFinal = currentAFN.F.has(q);
-    let isInitial = (q === currentAFN.q0);
-
-    // Flecha de estado inicial
-    if (isInitial) {
-      ctx.strokeStyle = "#1a56db";
-      ctx.lineWidth = 2.5;
+    function drawArrowHead(x, y, dx, dy, color = "#64748b") {
+      const size = 8;
+      ctx.save();
+      ctx.fillStyle = color;
       ctx.beginPath();
-      ctx.moveTo(p.x - NODE_RADIUS - 30, p.y);
-      ctx.lineTo(p.x - NODE_RADIUS, p.y);
-      ctx.stroke();
-      drawArrowHead(p.x - NODE_RADIUS, p.y, 1, 0, "#1a56db");
+      ctx.moveTo(x, y);
+      ctx.lineTo(x - size * dx - size * 0.5 * (-dy), y - size * dy - size * 0.5 * dx);
+      ctx.lineTo(x - size * dx + size * 0.5 * (-dy), y - size * dy + size * 0.5 * dx);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
     }
 
-    // Círculo principal
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, NODE_RADIUS, 0, Math.PI * 2);
-    ctx.fillStyle = isFinal ? "#ecfdf5" : "#eff6ff";
-    ctx.fill();
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = isFinal ? "#10b981" : "#3b82f6";
-    ctx.stroke();
+    // Eventos del Canvas (Arrastrar nodos, zoom, paneo)
+    canvas.addEventListener("mousedown", (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mx = (e.clientX - rect.left - pan.x) / zoom;
+      const my = (e.clientY - rect.top - pan.y) / zoom;
 
-    // Si es final, doble círculo
-    if (isFinal) {
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, NODE_RADIUS - 4, 0, Math.PI * 2);
-      ctx.strokeStyle = "#10b981";
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-    }
-
-    // Etiqueta del nodo
-    ctx.fillStyle = "#0f172a";
-    ctx.font = "bold 13px system-ui";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(q, p.x, p.y);
-  }
-
-  ctx.restore();
-}
-
-function drawArrowHead(x, y, dx, dy, color = "#64748b") {
-  const size = 8;
-  ctx.save();
-  ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.moveTo(x, y);
-  ctx.lineTo(x - size * dx - size * 0.5 * (-dy), y - size * dy - size * 0.5 * dx);
-  ctx.lineTo(x - size * dx + size * 0.5 * (-dy), y - size * dy + size * 0.5 * dx);
-  ctx.closePath();
-  ctx.fill();
-  ctx.restore();
-}
-
-// Eventos del Canvas (Arrastrar nodos, zoom, paneo)
-canvas.addEventListener("mousedown", (e) => {
-  const rect = canvas.getBoundingClientRect();
-  const mx = (e.clientX - rect.left - pan.x) / zoom;
-  const my = (e.clientY - rect.top - pan.y) / zoom;
-
-  // Comprobar si se hizo click en un nodo
-  draggedNode = null;
-  for (let [q, p] of nodePositions.entries()) {
-    let d = Math.hypot(p.x - mx, p.y - my);
-    if (d <= 24) {
-      draggedNode = q;
-      break;
-    }
-  }
-
-  isDragging = true;
-  lastMousePos = { x: e.clientX, y: e.clientY };
-});
-
-window.addEventListener("mousemove", (e) => {
-  if (!isDragging) return;
-  const dx = e.clientX - lastMousePos.x;
-  const dy = e.clientY - lastMousePos.y;
-
-  if (draggedNode) {
-    let p = nodePositions.get(draggedNode);
-    p.x += dx / zoom;
-    p.y += dy / zoom;
-  } else {
-    pan.x += dx;
-    pan.y += dy;
-  }
-
-  lastMousePos = { x: e.clientX, y: e.clientY };
-  drawGraph();
-});
-
-window.addEventListener("mouseup", () => {
-  isDragging = false;
-  draggedNode = null;
-});
-
-canvas.addEventListener("wheel", (e) => {
-  e.preventDefault();
-  const factor = e.deltaY < 0 ? 1.1 : 0.9;
-  zoom = Math.min(Math.max(zoom * factor, 0.4), 3.0);
-  drawGraph();
-});
-
-document.getElementById("btn-zoom-in").addEventListener("click", () => {
-  zoom = Math.min(zoom * 1.2, 3.0);
-  drawGraph();
-});
-document.getElementById("btn-zoom-out").addEventListener("click", () => {
-  zoom = Math.max(zoom * 0.8, 0.4);
-  drawGraph();
-});
-document.getElementById("btn-reset-zoom").addEventListener("click", () => {
-  if (currentAFN) layoutNodes(currentAFN);
-  drawGraph();
-});
-
-// ============================================================================
-// RENDERIZADO DE TABLAS Y ESPECIFICACIÓN FORMAL
-// ============================================================================
-function renderMatriz(afn) {
-  const container = document.getElementById("matrix-container");
-  const columnas = [...afn.Sigma, LAMBDA];
-
-  let html = '<table class="matrix-table"><thead><tr>';
-  html += '<th>Estado (Q)</th>';
-  for (let c of columnas) {
-    html += `<th>${c}</th>`;
-  }
-  html += '</tr></thead><tbody>';
-
-  for (let q of afn.Q) {
-    let isInitial = (q === afn.q0);
-    let isFinal = afn.F.has(q);
-    let prefix = isInitial ? "➔ " : "";
-    let suffix = isFinal ? " *" : "";
-
-    html += `<tr><td class="state-cell">${prefix}${q}${suffix}</td>`;
-
-    for (let c of columnas) {
-      let destinos = [];
-      for (let [u, s, v] of afn.transiciones) {
-        if (u === q && s === c) destinos.push(v);
+      // Comprobar si se hizo click en un nodo
+      draggedNode = null;
+      for (let [q, p] of nodePositions.entries()) {
+        let d = Math.hypot(p.x - mx, p.y - my);
+        if (d <= 24) {
+          draggedNode = q;
+          break;
+        }
       }
-      destinos.sort((a,b)=>parseInt(a.slice(1)) - parseInt(b.slice(1)));
 
-      if (destinos.length > 0) {
-        html += `<td><span class="dest-set">{ ${destinos.join(", ")} }</span></td>`;
+      isDragging = true;
+      lastMousePos = { x: e.clientX, y: e.clientY };
+    });
+
+    window.addEventListener("mousemove", (e) => {
+      if (!isDragging) return;
+      const dx = e.clientX - lastMousePos.x;
+      const dy = e.clientY - lastMousePos.y;
+
+      if (draggedNode) {
+        let p = nodePositions.get(draggedNode);
+        p.x += dx / zoom;
+        p.y += dy / zoom;
       } else {
-        html += `<td><span class="dest-empty">∅</span></td>`;
+        pan.x += dx;
+        pan.y += dy;
       }
+
+      lastMousePos = { x: e.clientX, y: e.clientY };
+      drawGraph();
+    });
+
+    window.addEventListener("mouseup", () => {
+      isDragging = false;
+      draggedNode = null;
+    });
+
+    canvas.addEventListener("wheel", (e) => {
+      e.preventDefault();
+      const factor = e.deltaY < 0 ? 1.1 : 0.9;
+      zoom = Math.min(Math.max(zoom * factor, 0.4), 3.0);
+      drawGraph();
+    });
+
+    document.getElementById("btn-zoom-in").addEventListener("click", () => {
+      zoom = Math.min(zoom * 1.2, 3.0);
+      drawGraph();
+    });
+    document.getElementById("btn-zoom-out").addEventListener("click", () => {
+      zoom = Math.max(zoom * 0.8, 0.4);
+      drawGraph();
+    });
+    document.getElementById("btn-reset-zoom").addEventListener("click", () => {
+      if (currentAFN) layoutNodes(currentAFN);
+      drawGraph();
+    });
+
+    // ============================================================================
+    // RENDERIZADO DE TABLAS Y ESPECIFICACIÓN FORMAL
+    // ============================================================================
+    function renderMatriz(afn) {
+      const container = document.getElementById("matrix-container");
+      const columnas = [...afn.Sigma, LAMBDA];
+
+      let html = '<table class="matrix-table"><thead><tr>';
+      html += '<th>Estado (Q)</th>';
+      for (let c of columnas) {
+        html += `<th>${c}</th>`;
+      }
+      html += '</tr></thead><tbody>';
+
+      for (let q of afn.Q) {
+        let isInitial = (q === afn.q0);
+        let isFinal = afn.F.has(q);
+        let prefix = isInitial ? "➔ " : "";
+        let suffix = isFinal ? " *" : "";
+
+        html += `<tr><td class="state-cell">${prefix}${q}${suffix}</td>`;
+
+        for (let c of columnas) {
+          let destinos = [];
+          for (let [u, s, v] of afn.transiciones) {
+            if (u === q && s === c) destinos.push(v);
+          }
+          destinos.sort((a, b) => parseInt(a.slice(1)) - parseInt(b.slice(1)));
+
+          if (destinos.length > 0) {
+            html += `<td><span class="dest-set">{ ${destinos.join(", ")} }</span></td>`;
+          } else {
+            html += `<td><span class="dest-empty">∅</span></td>`;
+          }
+        }
+        html += '</tr>';
+      }
+
+      html += '</tbody></table>';
+      container.innerHTML = html;
     }
-    html += '</tr>';
-  }
 
-  html += '</tbody></table>';
-  container.innerHTML = html;
-}
-
-function renderFormal(afn) {
-  const formalDetails = document.getElementById("formal-details");
-  formalDetails.innerHTML = `
+    function renderFormal(afn) {
+      const formalDetails = document.getElementById("formal-details");
+      formalDetails.innerHTML = `
     <li><strong>Expresión Regular:</strong> <code>${afn.er}</code></li>
     <li><strong>Alfabeto de entrada (Σ):</strong> { ${afn.Sigma.join(", ")} }</li>
     <li><strong>Conjunto de estados (Q):</strong> { ${afn.Q.join(", ")} } &nbsp;(Total: <strong>${afn.Q.length}</strong> estados)</li>
@@ -1164,115 +1262,153 @@ function renderFormal(afn) {
     <li><strong>Estados de aceptación (F):</strong> { ${Array.from(afn.F).join(", ")} }</li>
   `;
 
-  const grid = document.getElementById("delta-grid-container");
-  const columnas = [...afn.Sigma, LAMBDA];
-  let itemsHtml = "";
+      const grid = document.getElementById("delta-grid-container");
+      const columnas = [...afn.Sigma, LAMBDA];
+      let itemsHtml = "";
 
-  for (let q of afn.Q) {
-    for (let c of columnas) {
-      let destinos = [];
-      for (let [u, s, v] of afn.transiciones) {
-        if (u === q && s === c) destinos.push(v);
+      for (let q of afn.Q) {
+        for (let c of columnas) {
+          let destinos = [];
+          for (let [u, s, v] of afn.transiciones) {
+            if (u === q && s === c) destinos.push(v);
+          }
+          destinos.sort((a, b) => parseInt(a.slice(1)) - parseInt(b.slice(1)));
+
+          if (destinos.length > 0) {
+            itemsHtml += `<div class="delta-item">Δ(${q}, ${c}) = { ${destinos.join(", ")} }</div>`;
+          }
+        }
       }
-      destinos.sort((a,b)=>parseInt(a.slice(1)) - parseInt(b.slice(1)));
 
-      if (destinos.length > 0) {
-        itemsHtml += `<div class="delta-item">Δ(${q}, ${c}) = { ${destinos.join(", ")} }</div>`;
+      grid.innerHTML = itemsHtml || '<p style="color:var(--text-muted);">No hay transiciones activas.</p>';
+    }
+
+    // ============================================================================
+    // CONTROLADOR GENERAL
+    // ============================================================================
+    const generador = new GeneradorAFNJS();
+
+    function procesar() {
+      const input = document.getElementById("regex-input").value;
+      try {
+        currentAFN = generador.construir(input);
+        layoutNodes(currentAFN);
+        drawGraph();
+        renderMatriz(currentAFN);
+        renderFormal(currentAFN);
+
+        highlightedStates.clear();
+        const resultDiv = document.getElementById("sim-result");
+        resultDiv.style.display = "none";
+        resultDiv.innerHTML = "";
+      } catch (err) {
+        alert("Error al procesar la expresión regular: " + err.message);
       }
     }
-  }
 
-  grid.innerHTML = itemsHtml || '<p style="color:var(--text-muted);">No hay transiciones activas.</p>';
-}
+    // Botón Generar
+    document.getElementById("btn-generate").addEventListener("click", procesar);
 
-// ============================================================================
-// CONTROLADOR GENERAL
-// ============================================================================
-const generador = new GeneradorAFNJS();
+    // Tecla Enter en el input
+    document.getElementById("regex-input").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") procesar();
+    });
 
-function procesar() {
-  const input = document.getElementById("regex-input").value;
-  try {
-    currentAFN = generador.construir(input);
-    layoutNodes(currentAFN);
-    drawGraph();
-    renderMatriz(currentAFN);
-    renderFormal(currentAFN);
+    // Dropdown de ejemplos
+    document.getElementById("examples-dropdown").addEventListener("change", (e) => {
+      document.getElementById("regex-input").value = e.target.value;
+      procesar();
+    });
 
-    document.getElementById("sim-result").style.display = "none";
-  } catch (err) {
-    alert("Error al procesar la expresión regular: " + err.message);
-  }
-}
+    // Botones rápidos de teclado
+    document.querySelectorAll(".key-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const input = document.getElementById("regex-input");
+        const val = btn.getAttribute("data-val");
+        const pos = input.selectionStart || input.value.length;
+        input.value = input.value.slice(0, pos) + val + input.value.slice(pos);
+        input.focus();
+        input.setSelectionRange(pos + val.length, pos + val.length);
+      });
+    });
 
-// Botón Generar
-document.getElementById("btn-generate").addEventListener("click", procesar);
+    // Pestañas (Tabs)
+    document.querySelectorAll(".tab-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+        document.querySelectorAll(".tab-content").forEach((c) => c.classList.remove("active"));
 
-// Tecla Enter en el input
-document.getElementById("regex-input").addEventListener("keydown", (e) => {
-  if (e.key === "Enter") procesar();
-});
+        btn.classList.add("active");
+        document.getElementById(btn.getAttribute("data-tab")).classList.add("active");
 
-// Dropdown de ejemplos
-document.getElementById("examples-dropdown").addEventListener("change", (e) => {
-  document.getElementById("regex-input").value = e.target.value;
-  procesar();
-});
+        if (btn.getAttribute("data-tab") === "tab-graph") {
+          drawGraph();
+        }
+      });
+    });
 
-// Botones rápidos de teclado
-document.querySelectorAll(".key-btn").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    const input = document.getElementById("regex-input");
-    const val = btn.getAttribute("data-val");
-    const pos = input.selectionStart || input.value.length;
-    input.value = input.value.slice(0, pos) + val + input.value.slice(pos);
-    input.focus();
-    input.setSelectionRange(pos + val.length, pos + val.length);
-  });
-});
+    // Simulador
+    document.getElementById("btn-test-string").addEventListener("click", () => {
+      if (!currentAFN) return;
+      const str = document.getElementById("sim-input").value.trim();
+      const resultDiv = document.getElementById("sim-result");
+      const res = evaluarCadenaAFN(currentAFN, str);
 
-// Pestañas (Tabs)
-document.querySelectorAll(".tab-btn").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
-    document.querySelectorAll(".tab-content").forEach((c) => c.classList.remove("active"));
+      resultDiv.style.display = "block";
+      resultDiv.className = "sim-result " + (res.aceptada ? "accepted" : "rejected");
 
-    btn.classList.add("active");
-    document.getElementById(btn.getAttribute("data-tab")).classList.add("active");
+      let label = str === "" ? "Cadena vacía (λ)" : `"${str}"`;
+      let html = "";
 
-    if (btn.getAttribute("data-tab") === "tab-graph") {
+      if (res.simboloInvalido) {
+        html += `<div style="font-size: 1rem; margin-bottom: 6px;">❌ <strong>Rechazada:</strong> El símbolo <code>'${res.simboloInvalido}'</code> no pertenece al alfabeto Σ = { ${currentAFN.Sigma.join(", ")} }.</div>`;
+      } else if (res.aceptada) {
+        html += `<div style="font-size: 1rem; margin-bottom: 6px;">✓ <strong>¡Cadena ACEPTADA!</strong> La cadena <strong>${label}</strong> fue reconocida con éxito.</div>`;
+        html += `<div style="font-size: 0.9rem; margin-bottom: 8px;">Estado(s) de aceptación alcanzado(s): <strong>{ ${res.finalesAlcanzados.join(", ")} }</strong> ⊆ F.</div>`;
+      } else {
+        html += `<div style="font-size: 1rem; margin-bottom: 6px;">✗ <strong>Cadena RECHAZADA:</strong> La cadena <strong>${label}</strong> no es aceptada por el autómata.</div>`;
+        let alcanzadosStr = res.estadosFinales.length > 0 ? `{ ${res.estadosFinales.join(", ")} }` : "∅ (cómputo abortado)";
+        html += `<div style="font-size: 0.9rem; margin-bottom: 8px;">El autómata finalizó en el conjunto de estados: <strong>${alcanzadosStr}</strong>, ninguno de los cuales pertenece al conjunto de aceptación F = { ${Array.from(currentAFN.F).join(", ")} }.</div>`;
+      }
+
+      // Desglose paso a paso
+      html += '<div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.1); font-weight: normal; font-size: 0.88rem;">';
+      html += '<strong>Recorrido paso a paso (estados activos por transiciones y λ-clausura):</strong>';
+      html += '<ol style="margin-left: 20px; margin-top: 6px;">';
+      for (let p of res.pasos) {
+        let estStr = p.estados.length > 0 ? `{ ${p.estados.join(", ")} }` : '∅ (cómputo abortado)';
+        html += `<li style="margin-bottom: 4px;"><strong>${p.accion}:</strong> <span style="font-family: monospace; font-weight: bold;">${estStr}</span></li>`;
+      }
+      html += '</ol>';
+      html += '<div style="margin-top: 8px; color: #475569; font-style: italic;">* Los estados en los que finalizó el procesamiento aparecen resaltados con un aro punteado en el grafo.</div>';
+      html += '</div>';
+
+      resultDiv.innerHTML = html;
+
+      // Resaltar en el grafo los estados donde concluyó el procesamiento
+      highlightedStates = new Set(res.estadosFinales);
       drawGraph();
-    }
-  });
-});
+    });
 
-// Simulador
-document.getElementById("btn-test-string").addEventListener("click", () => {
-  if (!currentAFN) return;
-  const str = document.getElementById("sim-input").value;
-  const resultDiv = document.getElementById("sim-result");
-  const accepted = evaluarCadenaAFN(currentAFN, str);
+    // Permitir evaluar presionando Enter en la caja de texto
+    document.getElementById("sim-input").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        document.getElementById("btn-test-string").click();
+      }
+    });
 
-  resultDiv.className = "sim-result " + (accepted ? "accepted" : "rejected");
-  let label = str === "" ? "Cadena vacía (λ)" : `"${str}"`;
-  if (accepted) {
-    resultDiv.innerHTML = `✓ La cadena <strong>${label}</strong> es <strong>ACEPTADA</strong> por el autómata.`;
-  } else {
-    resultDiv.innerHTML = `✗ La cadena <strong>${label}</strong> es <strong>RECHAZADA</strong> por el autómata.`;
-  }
-});
+    // Redimensionar Canvas si cambia el tamaño de ventana
+    window.addEventListener("resize", () => {
+      initCanvas();
+      drawGraph();
+    });
 
-// Redimensionar Canvas si cambia el tamaño de ventana
-window.addEventListener("resize", () => {
-  initCanvas();
-  drawGraph();
-});
-
-// Carga inicial
-window.addEventListener("DOMContentLoaded", () => {
-  initCanvas();
-  procesar();
-});
-</script>
+    // Carga inicial
+    window.addEventListener("DOMContentLoaded", () => {
+      initCanvas();
+      procesar();
+    });
+  </script>
 </body>
+
 </html>
