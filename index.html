@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generador de AFN-λ | Teoría de la Computación</title>
+  <style>
+    :root {
+      --primary: #1a56db;
+      --primary-hover: #1e429f;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --accent: #0ea5e9;
+      --success: #10b981;
+      --danger: #ef4444;
+      --state-bg: #eff6ff;
+      --state-border: #3b82f6;
+      --final-border: #10b981;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      line-height: 1.5;
+      padding: 24px 16px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    header h1 {
+      font-size: 1.85rem;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.025em;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-top: 4px;
+    }
+
+    .badge-book {
+      display: inline-block;
+      background: #e0e7ff;
+      color: #3730a3;
+      padding: 3px 10px;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-top: 6px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+      margin-bottom: 20px;
+    }
+
+    .input-section {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .input-row input {
+      flex: 1;
+      padding: 12px 16px;
+      font-size: 1.1rem;
+      font-family: "Courier New", Courier, monospace;
+      font-weight: 600;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .input-row input:focus {
+      border-color: var(--primary);
+    }
+
+    .btn {
+      padding: 10px 20px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .quick-keys {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .quick-keys span {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-right: 4px;
+    }
+
+    .key-btn {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      color: #334155;
+    }
+
+    .key-btn:hover {
+      background: #e2e8f0;
+      color: var(--primary);
+    }
+
+    .examples-select {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 4px;
+    }
+
+    .examples-select select {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: white;
+      font-size: 0.9rem;
+      color: var(--text-main);
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid var(--border);
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .tab-btn {
+      padding: 10px 18px;
+      background: none;
+      border: none;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.2s;
+    }
+
+    .tab-btn:hover {
+      color: var(--primary);
+    }
+
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Canvas / Grafo */
+    #graph-container {
+      position: relative;
+      width: 100%;
+      height: 520px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background-color: #ffffff;
+      overflow: hidden;
+    }
+
+    #graph-canvas {
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+    }
+
+    #graph-canvas:active {
+      cursor: grabbing;
+    }
+
+    .graph-controls {
+      position: absolute;
+      bottom: 12px;
+      right: 12px;
+      display: flex;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 6px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .graph-controls button {
+      padding: 6px 10px;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .graph-controls button:hover {
+      background: #e2e8f0;
+    }
+
+    .graph-legend {
+      display: flex;
+      gap: 16px;
+      font-size: 0.85rem;
+      margin-top: 10px;
+      color: var(--text-muted);
+      align-items: center;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-circle {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid var(--state-border);
+      background: var(--state-bg);
+    }
+
+    .legend-final {
+      border: 3px double var(--final-border);
+      background: #ecfdf5;
+    }
+
+    /* Matriz */
+    .table-responsive {
+      overflow-x: auto;
+    }
+
+    table.matrix-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+      text-align: center;
+    }
+
+    table.matrix-table th, table.matrix-table td {
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+    }
+
+    table.matrix-table th {
+      background-color: #f1f5f9;
+      color: #334155;
+      font-weight: 700;
+    }
+
+    table.matrix-table tr:hover {
+      background-color: #f8fafc;
+    }
+
+    .state-cell {
+      font-weight: 700;
+      color: var(--primary);
+      text-align: left;
+      background-color: #fafafa;
+    }
+
+    .dest-empty {
+      color: #94a3b8;
+      font-style: italic;
+    }
+
+    .dest-set {
+      font-weight: 600;
+      color: #0f172a;
+      background-color: #f0fdf4;
+      border-radius: 4px;
+      padding: 2px 6px;
+      display: inline-block;
+    }
+
+    /* Función Delta */
+    .formal-card {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .formal-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--primary);
+    }
+
+    .formal-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 0.95rem;
+    }
+
+    .delta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .delta-item {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #1e293b;
+    }
+
+    /* Simulador */
+    .simulator-box {
+      margin-top: 20px;
+      background: #fdfdfd;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .sim-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .sim-row input {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 1rem;
+      flex: 1;
+    }
+
+    .sim-result {
+      margin-top: 10px;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-weight: 700;
+      display: none;
+    }
+
+    .sim-result.accepted {
+      display: block;
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+
+    .sim-result.rejected {
+      display: block;
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+
+    /* Mermaid code block */
+    pre.code-block {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 14px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: monospace;
+      font-size: 0.85rem;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>Generador de AFN-λ desde Expresiones Regulares</h1>
+    <p>Autómata Finito No Determinista con Transiciones Lambda</p>
+    <div class="badge-book">Teoría de la Computación — Rodrigo De Castro Korgi (Cap. 2)</div>
+  </header>
+
+  <!-- Panel de Entrada -->
+  <div class="card input-section">
+    <div class="input-row">
+      <input type="text" id="regex-input" value="a*(ab|ba)*" placeholder="Escribe la expresión regular (ej. (a|b)*b)" autocomplete="off">
+      <button class="btn btn-primary" id="btn-generate">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        Generar Autómata
+      </button>
+    </div>
+
+    <div class="quick-keys">
+      <span>Insertar:</span>
+      <button class="key-btn" data-val="λ">λ (cadena vacía)</button>
+      <button class="key-btn" data-val="|">∪ / | (unión)</button>
+      <button class="key-btn" data-val="*">* (estrella)</button>
+      <button class="key-btn" data-val="+">+ (positiva)</button>
+      <button class="key-btn" data-val="(">(</button>
+      <button class="key-btn" data-val=")">)</button>
+    </div>
+
+    <div class="examples-select">
+      <label for="examples-dropdown" style="font-size: 0.85rem; color: var(--text-muted);">Ejemplos del libro:</label>
+      <select id="examples-dropdown">
+        <option value="a*(ab|ba)*">a*(ab|ba)* (Sección 2.9)</option>
+        <option value="(a|b)*b">(a|b)*b (Terminan en 'b', Sec. 2.4)</option>
+        <option value="(0|1)*00(0|1)*">(0|1)*00(0|1)* (Contienen '00')</option>
+        <option value="a(b|c)*">a(b|c)*</option>
+        <option value="(ab|ba)*">(ab|ba)*</option>
+        <option value="b*ab*ab*">b*ab*ab* (Exactamente dos aes, Sec. 2.3)</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Tabs de Visualización -->
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="tab-graph">1. Grafo (Diagrama)</button>
+    <button class="tab-btn" data-tab="tab-matrix">2. Matriz de Transiciones</button>
+    <button class="tab-btn" data-tab="tab-delta">3. Función Formal Δ(Q, Σ)</button>
+    <button class="tab-btn" data-tab="tab-export">Código Mermaid / DOT</button>
+  </div>
+
+  <!-- Contenido Tab 1: Grafo -->
+  <div id="tab-graph" class="tab-content active">
+    <div class="card">
+      <div id="graph-container">
+        <canvas id="graph-canvas"></canvas>
+        <div class="graph-controls">
+          <button id="btn-zoom-in">+</button>
+          <button id="btn-zoom-out">-</button>
+          <button id="btn-reset-zoom">Centrar</button>
+        </div>
+      </div>
+
+      <div class="graph-legend">
+        <div class="legend-item">
+          <div class="legend-circle"></div>
+          <span>Estado normal</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-circle legend-final"></div>
+          <span>Estado de aceptación (F)</span>
+        </div>
+        <div class="legend-item">
+          <span style="font-weight: bold; color: var(--primary);">➔ q0</span>
+          <span>Estado inicial</span>
+        </div>
+        <div class="legend-item">
+          <span style="color: #64748b;">(Puedes arrastrar los estados para reorganizarlos libremente)</span>
+        </div>
+      </div>
+
+      <!-- Simulador de Cadenas -->
+      <div class="simulator-box">
+        <h3 style="font-size: 1rem; color: #1e293b;">Simulador de Cadenas en el AFN-λ</h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">Prueba si una cadena es aceptada o rechazada por este autómata:</p>
+        <div class="sim-row">
+          <input type="text" id="sim-input" placeholder="Ej. aab, b, etc. (Dejar vacío para cadena vacía λ)">
+          <button class="btn btn-primary" id="btn-test-string">Evaluar Cadena</button>
+        </div>
+        <div id="sim-result" class="sim-result"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenido Tab 2: Matriz -->
+  <div id="tab-matrix" class="tab-content">
+    <div class="card">
+      <h2 style="font-size: 1.2rem; margin-bottom: 12px; color: #0f172a;">Matriz de Transiciones</h2>
+      <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 16px;">
+        En cada celda se muestra el subconjunto de estados destino $\Delta(q, s)$. El símbolo <code>∅</code> indica que la transición no está definida (cómputo abortado).
+      </p>
+      <div class="table-responsive" id="matrix-container">
+        <!-- Tabla generada dinámicamente -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenido Tab 3: Función Delta -->
+  <div id="tab-delta" class="tab-content">
+    <div class="card">
+      <div class="formal-card">
+        <div class="formal-title">Quíntupla Formal del Autómata: M = (Σ, Q, q₀, F, Δ)</div>
+        <ul class="formal-list" id="formal-details">
+          <!-- Detalles formales inyectados por JS -->
+        </ul>
+      </div>
+
+      <h2 style="font-size: 1.15rem; margin-bottom: 8px; color: #0f172a;">
+        Valores explícitos de la Función de Transición: Δ : Q × (Σ ∪ {λ}) ➔ ℘(Q)
+      </h2>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+        Se detallan únicamente las transiciones activas no vacías:
+      </p>
+      <div class="delta-grid" id="delta-grid-container">
+        <!-- Tarjetas de transiciones -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenido Tab 4: Exportar -->
+  <div id="tab-export" class="tab-content">
+    <div class="card">
+      <h2 style="font-size: 1.1rem; margin-bottom: 8px;">Código Mermaid (Diagramas Markdown)</h2>
+      <pre class="code-block" id="export-mermaid"></pre>
+
+      <h2 style="font-size: 1.1rem; margin-top: 20px; margin-bottom: 8px;">Código Graphviz (DOT)</h2>
+      <pre class="code-block" id="export-dot"></pre>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================================
+// NÚCLEO DE LA CONSTRUCCIÓN DE THOMPSON (AFN-λ)
+// ============================================================================
+const LAMBDA = "λ";
+
+class FragmentoAFN {
+  constructor(start, accept, transitions) {
+    this.start = start;
+    this.accept = accept;
+    this.transitions = transitions; // array de [u, symb, v]
+  }
+}
+
+class GeneradorAFNJS {
+  constructor() {
+    this.stateCounter = 0;
+  }
+
+  nuevoEstado() {
+    return this.stateCounter++;
+  }
+
+  normalizarRegex(er) {
+    er = er.trim();
+    er = er.replaceAll("\\lambda", LAMBDA)
+           .replaceAll("\\L", LAMBDA)
+           .replaceAll("lambda", LAMBDA)
+           .replaceAll("eps", LAMBDA);
+
+    let res = "";
+    for (let c of er) {
+      if (c === "U" || c === "u" || c === "|") {
+        res += "|";
+      } else {
+        res += c;
+      }
+    }
+    return res;
+  }
+
+  insertarConcatenacionExplicita(er) {
+    let res = "";
+    for (let i = 0; i < er.length; i++) {
+      let c1 = er[i];
+      res += c1;
+      if (i + 1 < er.length) {
+        let c2 = er[i + 1];
+        let esC1Fin = c1 !== "|" && c1 !== "(" && c1 !== "·";
+        let esC2Ini = c2 !== "|" && c2 !== ")" && c2 !== "*" && c2 !== "+" && c2 !== "·";
+        if (esC1Fin && esC2Ini) {
+          res += "·";
+        }
+      }
+    }
+    return res;
+  }
+
+  infijoAPostfijo(er) {
+    const prec = { "*": 3, "+": 3, "·": 2, "|": 1 };
+    let salida = [];
+    let operadores = [];
+
+    for (let i = 0; i < er.length; i++) {
+      let c = er[i];
+      if (/\s/.test(c)) continue;
+
+      if (/[a-zA-Z0-9]/.test(c) || c === LAMBDA || c === "#" || c === "@" || c === "_") {
+        salida.push(c);
+      } else if (c === "(") {
+        operadores.push(c);
+      } else if (c === ")") {
+        while (operadores.length > 0 && operadores[operadores.length - 1] !== "(") {
+          salida.push(operadores.pop());
+        }
+        if (operadores.length === 0) throw new Error("Paréntesis desbalanceados");
+        operadores.pop(); // Sacar '('
+      } else if (c in prec) {
+        while (
+          operadores.length > 0 &&
+          operadores[operadores.length - 1] !== "(" &&
+          prec[operadores[operadores.length - 1]] >= prec[c]
+        ) {
+          salida.push(operadores.pop());
+        }
+        operadores.push(c);
+      } else {
+        salida.push(c);
+      }
+    }
+
+    while (operadores.length > 0) {
+      let op = operadores.pop();
+      if (op === "(") throw new Error("Paréntesis desbalanceados");
+      salida.push(op);
+    }
+
+    return salida;
+  }
+
+  construir(erTexto) {
+    if (!erTexto || erTexto.trim() === "") throw new Error("La expresión regular no puede estar vacía");
+    let erNorm = this.normalizarRegex(erTexto);
+    let erCat = this.insertarConcatenacionExplicita(erNorm);
+    let postfijo = this.infijoAPostfijo(erCat);
+
+    this.stateCounter = 0;
+    let pila = [];
+    let alfabeto = new Set();
+
+    for (let token of postfijo) {
+      if (token === "|") {
+        if (pila.length < 2) throw new Error("Error en unión '|'");
+        let b = pila.pop();
+        let a = pila.pop();
+        let sIni = this.nuevoEstado();
+        let sFin = this.nuevoEstado();
+        let trans = [...a.transitions, ...b.transitions];
+        trans.push([sIni, LAMBDA, a.start]);
+        trans.push([sIni, LAMBDA, b.start]);
+        trans.push([a.accept, LAMBDA, sFin]);
+        trans.push([b.accept, LAMBDA, sFin]);
+        pila.push(new FragmentoAFN(sIni, sFin, trans));
+      } else if (token === "·") {
+        if (pila.length < 2) throw new Error("Error en concatenación");
+        let b = pila.pop();
+        let a = pila.pop();
+        let trans = [...a.transitions, ...b.transitions];
+        trans.push([a.accept, LAMBDA, b.start]);
+        pila.push(new FragmentoAFN(a.start, b.accept, trans));
+      } else if (token === "*") {
+        if (pila.length < 1) throw new Error("Error en estrella '*'");
+        let a = pila.pop();
+        let sIni = this.nuevoEstado();
+        let sFin = this.nuevoEstado();
+        let trans = [...a.transitions];
+        trans.push([sIni, LAMBDA, sFin]);
+        trans.push([sIni, LAMBDA, a.start]);
+        trans.push([a.accept, LAMBDA, a.start]);
+        trans.push([a.accept, LAMBDA, sFin]);
+        pila.push(new FragmentoAFN(sIni, sFin, trans));
+      } else if (token === "+") {
+        if (pila.length < 1) throw new Error("Error en '+'");
+        let a = pila.pop();
+        let sIni = this.nuevoEstado();
+        let sFin = this.nuevoEstado();
+        let trans = [...a.transitions];
+        trans.push([sIni, LAMBDA, a.start]);
+        trans.push([a.accept, LAMBDA, a.start]);
+        trans.push([a.accept, LAMBDA, sFin]);
+        pila.push(new FragmentoAFN(sIni, sFin, trans));
+      } else {
+        let sIni = this.nuevoEstado();
+        let sFin = this.nuevoEstado();
+        if (token !== LAMBDA) alfabeto.add(token);
+        pila.push(new FragmentoAFN(sIni, sFin, [[sIni, token, sFin]]));
+      }
+    }
+
+    if (pila.length !== 1) throw new Error("Expresión regular mal formada");
+    let frag = pila.pop();
+
+    return this.renombrarCanonicamente(frag, Array.from(alfabeto).sort(), erTexto);
+  }
+
+  renombrarCanonicamente(frag, alfabeto, erTexto) {
+    let mapa = new Map();
+    let cola = [frag.start];
+    mapa.set(frag.start, "q0");
+    let contador = 1;
+
+    let ady = new Map();
+    for (let [u, _, v] of frag.transitions) {
+      if (!ady.has(u)) ady.set(u, []);
+      ady.get(u).push(v);
+    }
+
+    while (cola.length > 0) {
+      let u = cola.shift();
+      for (let v of (ady.get(u) || [])) {
+        if (!mapa.has(v)) {
+          mapa.set(v, `q${contador++}`);
+          cola.push(v);
+        }
+      }
+    }
+
+    let todos = new Set([frag.start, frag.accept]);
+    for (let [u, _, v] of frag.transitions) {
+      todos.add(u);
+      todos.add(v);
+    }
+    for (let s of Array.from(todos).sort((a,b)=>a-b)) {
+      if (!mapa.has(s)) {
+        mapa.set(s, `q${contador++}`);
+      }
+    }
+
+    let Q = Array.from(mapa.values()).sort((a,b) => parseInt(a.slice(1)) - parseInt(b.slice(1)));
+    let trans = frag.transitions.map(([u, s, v]) => [mapa.get(u), s, mapa.get(v)]);
+    trans.sort((a, b) => {
+      let na = parseInt(a[0].slice(1)), nb = parseInt(b[0].slice(1));
+      if (na !== nb) return na - nb;
+      if (a[1] !== b[1]) return a[1].localeCompare(b[1]);
+      return parseInt(a[2].slice(1)) - parseInt(b[2].slice(1));
+    });
+
+    let q0 = "q0";
+    let F = new Set([mapa.get(frag.accept)]);
+
+    return {
+      er: erTexto,
+      Q,
+      Sigma: alfabeto,
+      q0,
+      F,
+      transiciones: trans
+    };
+  }
+}
+
+// ============================================================================
+// EVALUACIÓN DE CADENAS (SIMULADOR)
+// ============================================================================
+function evaluarCadenaAFN(afn, cadena) {
+  function clausura(estados) {
+    let res = new Set(estados);
+    let pila = Array.from(estados);
+    while (pila.length > 0) {
+      let curr = pila.pop();
+      for (let [u, s, v] of afn.transiciones) {
+        if (u === curr && s === LAMBDA && !res.has(v)) {
+          res.add(v);
+          pila.push(v);
+        }
+      }
+    }
+    return res;
+  }
+
+  let actuales = clausura(new Set([afn.q0]));
+
+  for (let c of cadena) {
+    if (!afn.Sigma.includes(c)) return false;
+    let siguientes = new Set();
+    for (let q of actuales) {
+      for (let [u, s, v] of afn.transiciones) {
+        if (u === q && s === c) {
+          siguientes.add(v);
+        }
+      }
+    }
+    actuales = clausura(siguientes);
+    if (actuales.size === 0) return false;
+  }
+
+  for (let f of afn.F) {
+    if (actuales.has(f)) return true;
+  }
+  return false;
+}
+
+// ============================================================================
+// VISUALIZADOR DE GRAFO (CANVAS CON FÍSICA Y ARRASTRE)
+// ============================================================================
+let currentAFN = null;
+let nodePositions = new Map();
+let canvas = document.getElementById("graph-canvas");
+let ctx = canvas.getContext("2d");
+let zoom = 1;
+let pan = { x: 0, y: 0 };
+let isDragging = false;
+let draggedNode = null;
+let lastMousePos = { x: 0, y: 0 };
+
+function initCanvas() {
+  const container = document.getElementById("graph-container");
+  canvas.width = container.clientWidth * window.devicePixelRatio;
+  canvas.height = container.clientHeight * window.devicePixelRatio;
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+}
+
+function layoutNodes(afn) {
+  nodePositions.clear();
+  const n = afn.Q.length;
+  const container = document.getElementById("graph-container");
+  const width = container.clientWidth;
+  const height = container.clientHeight;
+
+  // Organizar estados en capas de izquierda a derecha (usando BFS)
+  let niveles = new Map();
+  niveles.set(afn.q0, 0);
+  let cola = [afn.q0];
+  let visitados = new Set([afn.q0]);
+
+  let ady = new Map();
+  for (let [u, _, v] of afn.transiciones) {
+    if (!ady.has(u)) ady.set(u, []);
+    ady.get(u).push(v);
+  }
+
+  while (cola.length > 0) {
+    let u = cola.shift();
+    let lvl = niveles.get(u);
+    for (let v of (ady.get(u) || [])) {
+      if (!visitados.has(v)) {
+        visitados.add(v);
+        niveles.set(v, lvl + 1);
+        cola.push(v);
+      }
+    }
+  }
+
+  // Agrupar por nivel
+  let gruposNivel = new Map();
+  let maxLvl = 0;
+  for (let q of afn.Q) {
+    let lvl = niveles.get(q) || 0;
+    maxLvl = Math.max(maxLvl, lvl);
+    if (!gruposNivel.has(lvl)) gruposNivel.set(lvl, []);
+    gruposNivel.get(lvl).push(q);
+  }
+
+  const paddingX = 80;
+  const pasoX = maxLvl > 0 ? (width - paddingX * 2) / maxLvl : 0;
+
+  for (let [lvl, nodos] of gruposNivel.entries()) {
+    let x = paddingX + lvl * Math.max(pasoX, 90);
+    let pasoY = height / (nodos.length + 1);
+    nodos.forEach((q, idx) => {
+      let y = pasoY * (idx + 1);
+      nodePositions.set(q, { x, y });
+    });
+  }
+
+  zoom = 1;
+  pan = { x: 0, y: 0 };
+}
+
+function drawGraph() {
+  const container = document.getElementById("graph-container");
+  const w = container.clientWidth;
+  const h = container.clientHeight;
+
+  ctx.save();
+  ctx.clearRect(0, 0, w, h);
+  ctx.translate(pan.x, pan.y);
+  ctx.scale(zoom, zoom);
+
+  if (!currentAFN) {
+    ctx.restore();
+    return;
+  }
+
+  const NODE_RADIUS = 22;
+
+  // Agrupar transiciones entre pares
+  let edgeMap = new Map();
+  for (let [u, s, v] of currentAFN.transiciones) {
+    let key = `${u}__${v}`;
+    if (!edgeMap.has(key)) edgeMap.set(key, { u, v, symbols: [] });
+    edgeMap.get(key).symbols.push(s);
+  }
+
+  // 1. Dibujar arcos
+  for (let { u, v, symbols } of edgeMap.values()) {
+    let p1 = nodePositions.get(u);
+    let p2 = nodePositions.get(v);
+    if (!p1 || !p2) continue;
+
+    let label = symbols.join(", ");
+    let isSelf = (u === v);
+
+    ctx.strokeStyle = "#64748b";
+    ctx.fillStyle = "#1e293b";
+    ctx.lineWidth = 1.8;
+    ctx.font = "bold 13px system-ui";
+
+    if (isSelf) {
+      // Bucle
+      let loopRadius = 18;
+      let cx = p1.x;
+      let cy = p1.y - NODE_RADIUS - loopRadius;
+      ctx.beginPath();
+      ctx.arc(cx, cy, loopRadius, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Flecha del bucle
+      drawArrowHead(cx + loopRadius, cy + 5, 0, 1);
+      ctx.fillText(label, cx, cy - loopRadius - 4);
+    } else {
+      // Arco dirigido
+      let hasReverse = edgeMap.has(`${v}__${u}`);
+      let dx = p2.x - p1.x;
+      let dy = p2.y - p1.y;
+      let dist = Math.sqrt(dx * dx + dy * dy);
+      let nx = dx / dist;
+      let ny = dy / dist;
+
+      let curvature = hasReverse ? 30 : 0;
+      let mx = (p1.x + p2.x) / 2 - ny * curvature;
+      let my = (p1.y + p2.y) / 2 + nx * curvature;
+
+      ctx.beginPath();
+      ctx.moveTo(p1.x + nx * NODE_RADIUS, p1.y + ny * NODE_RADIUS);
+      if (curvature !== 0) {
+        ctx.quadraticCurveTo(mx, my, p2.x - nx * NODE_RADIUS, p2.y - ny * NODE_RADIUS);
+      } else {
+        ctx.lineTo(p2.x - nx * NODE_RADIUS, p2.y - ny * NODE_RADIUS);
+      }
+      ctx.stroke();
+
+      // Cabeza de flecha
+      let endX = p2.x - nx * NODE_RADIUS;
+      let endY = p2.y - ny * NODE_RADIUS;
+      let dirX = curvature !== 0 ? endX - mx : nx;
+      let dirY = curvature !== 0 ? endY - my : ny;
+      let dLen = Math.sqrt(dirX * dirX + dirY * dirY);
+      drawArrowHead(endX, endY, dirX / dLen, dirY / dLen);
+
+      // Texto de etiqueta con fondo blanco para legibilidad
+      let textX = (p1.x + p2.x) / 2 - ny * (curvature * 0.7);
+      let textY = (p1.y + p2.y) / 2 + nx * (curvature * 0.7) - 6;
+
+      ctx.save();
+      let metrics = ctx.measureText(label);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+      ctx.fillRect(textX - metrics.width / 2 - 3, textY - 11, metrics.width + 6, 15);
+      ctx.fillStyle = "#0f172a";
+      ctx.textAlign = "center";
+      ctx.fillText(label, textX, textY);
+      ctx.restore();
+    }
+  }
+
+  // 2. Dibujar nodos
+  for (let q of currentAFN.Q) {
+    let p = nodePositions.get(q);
+    if (!p) continue;
+
+    let isFinal = currentAFN.F.has(q);
+    let isInitial = (q === currentAFN.q0);
+
+    // Flecha de estado inicial
+    if (isInitial) {
+      ctx.strokeStyle = "#1a56db";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(p.x - NODE_RADIUS - 30, p.y);
+      ctx.lineTo(p.x - NODE_RADIUS, p.y);
+      ctx.stroke();
+      drawArrowHead(p.x - NODE_RADIUS, p.y, 1, 0, "#1a56db");
+    }
+
+    // Círculo principal
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, NODE_RADIUS, 0, Math.PI * 2);
+    ctx.fillStyle = isFinal ? "#ecfdf5" : "#eff6ff";
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = isFinal ? "#10b981" : "#3b82f6";
+    ctx.stroke();
+
+    // Si es final, doble círculo
+    if (isFinal) {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, NODE_RADIUS - 4, 0, Math.PI * 2);
+      ctx.strokeStyle = "#10b981";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+
+    // Etiqueta del nodo
+    ctx.fillStyle = "#0f172a";
+    ctx.font = "bold 13px system-ui";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(q, p.x, p.y);
+  }
+
+  ctx.restore();
+}
+
+function drawArrowHead(x, y, dx, dy, color = "#64748b") {
+  const size = 8;
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.lineTo(x - size * dx - size * 0.5 * (-dy), y - size * dy - size * 0.5 * dx);
+  ctx.lineTo(x - size * dx + size * 0.5 * (-dy), y - size * dy + size * 0.5 * dx);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+// Eventos del Canvas (Arrastrar nodos, zoom, paneo)
+canvas.addEventListener("mousedown", (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const mx = (e.clientX - rect.left - pan.x) / zoom;
+  const my = (e.clientY - rect.top - pan.y) / zoom;
+
+  // Comprobar si se hizo click en un nodo
+  draggedNode = null;
+  for (let [q, p] of nodePositions.entries()) {
+    let d = Math.hypot(p.x - mx, p.y - my);
+    if (d <= 24) {
+      draggedNode = q;
+      break;
+    }
+  }
+
+  isDragging = true;
+  lastMousePos = { x: e.clientX, y: e.clientY };
+});
+
+window.addEventListener("mousemove", (e) => {
+  if (!isDragging) return;
+  const dx = e.clientX - lastMousePos.x;
+  const dy = e.clientY - lastMousePos.y;
+
+  if (draggedNode) {
+    let p = nodePositions.get(draggedNode);
+    p.x += dx / zoom;
+    p.y += dy / zoom;
+  } else {
+    pan.x += dx;
+    pan.y += dy;
+  }
+
+  lastMousePos = { x: e.clientX, y: e.clientY };
+  drawGraph();
+});
+
+window.addEventListener("mouseup", () => {
+  isDragging = false;
+  draggedNode = null;
+});
+
+canvas.addEventListener("wheel", (e) => {
+  e.preventDefault();
+  const factor = e.deltaY < 0 ? 1.1 : 0.9;
+  zoom = Math.min(Math.max(zoom * factor, 0.4), 3.0);
+  drawGraph();
+});
+
+document.getElementById("btn-zoom-in").addEventListener("click", () => {
+  zoom = Math.min(zoom * 1.2, 3.0);
+  drawGraph();
+});
+document.getElementById("btn-zoom-out").addEventListener("click", () => {
+  zoom = Math.max(zoom * 0.8, 0.4);
+  drawGraph();
+});
+document.getElementById("btn-reset-zoom").addEventListener("click", () => {
+  if (currentAFN) layoutNodes(currentAFN);
+  drawGraph();
+});
+
+// ============================================================================
+// RENDERIZADO DE TABLAS Y ESPECIFICACIÓN FORMAL
+// ============================================================================
+function renderMatriz(afn) {
+  const container = document.getElementById("matrix-container");
+  const columnas = [...afn.Sigma, LAMBDA];
+
+  let html = '<table class="matrix-table"><thead><tr>';
+  html += '<th>Estado (Q)</th>';
+  for (let c of columnas) {
+    html += `<th>${c}</th>`;
+  }
+  html += '</tr></thead><tbody>';
+
+  for (let q of afn.Q) {
+    let isInitial = (q === afn.q0);
+    let isFinal = afn.F.has(q);
+    let prefix = isInitial ? "➔ " : "";
+    let suffix = isFinal ? " *" : "";
+
+    html += `<tr><td class="state-cell">${prefix}${q}${suffix}</td>`;
+
+    for (let c of columnas) {
+      let destinos = [];
+      for (let [u, s, v] of afn.transiciones) {
+        if (u === q && s === c) destinos.push(v);
+      }
+      destinos.sort((a,b)=>parseInt(a.slice(1)) - parseInt(b.slice(1)));
+
+      if (destinos.length > 0) {
+        html += `<td><span class="dest-set">{ ${destinos.join(", ")} }</span></td>`;
+      } else {
+        html += `<td><span class="dest-empty">∅</span></td>`;
+      }
+    }
+    html += '</tr>';
+  }
+
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+function renderFormal(afn) {
+  const formalDetails = document.getElementById("formal-details");
+  formalDetails.innerHTML = `
+    <li><strong>Expresión Regular:</strong> <code>${afn.er}</code></li>
+    <li><strong>Alfabeto de entrada (Σ):</strong> { ${afn.Sigma.join(", ")} }</li>
+    <li><strong>Conjunto de estados (Q):</strong> { ${afn.Q.join(", ")} } &nbsp;(Total: <strong>${afn.Q.length}</strong> estados)</li>
+    <li><strong>Estado inicial (q₀):</strong> <code>${afn.q0}</code></li>
+    <li><strong>Estados de aceptación (F):</strong> { ${Array.from(afn.F).join(", ")} }</li>
+  `;
+
+  const grid = document.getElementById("delta-grid-container");
+  const columnas = [...afn.Sigma, LAMBDA];
+  let itemsHtml = "";
+
+  for (let q of afn.Q) {
+    for (let c of columnas) {
+      let destinos = [];
+      for (let [u, s, v] of afn.transiciones) {
+        if (u === q && s === c) destinos.push(v);
+      }
+      destinos.sort((a,b)=>parseInt(a.slice(1)) - parseInt(b.slice(1)));
+
+      if (destinos.length > 0) {
+        itemsHtml += `<div class="delta-item">Δ(${q}, ${c}) = { ${destinos.join(", ")} }</div>`;
+      }
+    }
+  }
+
+  grid.innerHTML = itemsHtml || '<p style="color:var(--text-muted);">No hay transiciones activas.</p>';
+}
+
+function renderExports(afn) {
+  // Mermaid
+  let mermaid = "graph LR\n";
+  mermaid += `    start_node(( )) -->|inicio| ${afn.q0}\n`;
+  mermaid += "    style start_node fill:#fff,stroke:#fff,stroke-width:0px\n";
+  for (let q of afn.Q) {
+    if (afn.F.has(q)) {
+      mermaid += `    ${q}((( "${q} [Final]" )))\n`;
+    } else {
+      mermaid += `    ${q}(( "${q}" ))\n`;
+    }
+  }
+  for (let [u, s, v] of afn.transiciones) {
+    mermaid += `    ${u} -->|"${s}"| ${v}\n`;
+  }
+  document.getElementById("export-mermaid").textContent = mermaid;
+
+  // DOT
+  let dot = 'digraph AFN_Lambda {\n';
+  dot += '    rankdir=LR;\n';
+  dot += '    node [shape = circle];\n\n';
+  dot += '    __start [shape=none, label="", width=0, height=0];\n';
+  dot += `    __start -> "${afn.q0}" [label="inicio"];\n\n`;
+  for (let f of afn.F) {
+    dot += `    "${f}" [shape=doublecircle];\n`;
+  }
+  dot += '\n';
+  for (let [u, s, v] of afn.transiciones) {
+    dot += `    "${u}" -> "${v}" [label="${s}"];\n`;
+  }
+  dot += '}\n';
+  document.getElementById("export-dot").textContent = dot;
+}
+
+// ============================================================================
+// CONTROLADOR GENERAL
+// ============================================================================
+const generador = new GeneradorAFNJS();
+
+function procesar() {
+  const input = document.getElementById("regex-input").value;
+  try {
+    currentAFN = generador.construir(input);
+    layoutNodes(currentAFN);
+    drawGraph();
+    renderMatriz(currentAFN);
+    renderFormal(currentAFN);
+    renderExports(currentAFN);
+
+    document.getElementById("sim-result").style.display = "none";
+  } catch (err) {
+    alert("Error al procesar la expresión regular: " + err.message);
+  }
+}
+
+// Botón Generar
+document.getElementById("btn-generate").addEventListener("click", procesar);
+
+// Tecla Enter en el input
+document.getElementById("regex-input").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") procesar();
+});
+
+// Dropdown de ejemplos
+document.getElementById("examples-dropdown").addEventListener("change", (e) => {
+  document.getElementById("regex-input").value = e.target.value;
+  procesar();
+});
+
+// Botones rápidos de teclado
+document.querySelectorAll(".key-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const input = document.getElementById("regex-input");
+    const val = btn.getAttribute("data-val");
+    const pos = input.selectionStart || input.value.length;
+    input.value = input.value.slice(0, pos) + val + input.value.slice(pos);
+    input.focus();
+    input.setSelectionRange(pos + val.length, pos + val.length);
+  });
+});
+
+// Pestañas (Tabs)
+document.querySelectorAll(".tab-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+    document.querySelectorAll(".tab-content").forEach((c) => c.classList.remove("active"));
+
+    btn.classList.add("active");
+    document.getElementById(btn.getAttribute("data-tab")).classList.add("active");
+
+    if (btn.getAttribute("data-tab") === "tab-graph") {
+      drawGraph();
+    }
+  });
+});
+
+// Simulador
+document.getElementById("btn-test-string").addEventListener("click", () => {
+  if (!currentAFN) return;
+  const str = document.getElementById("sim-input").value;
+  const resultDiv = document.getElementById("sim-result");
+  const accepted = evaluarCadenaAFN(currentAFN, str);
+
+  resultDiv.className = "sim-result " + (accepted ? "accepted" : "rejected");
+  let label = str === "" ? "Cadena vacía (λ)" : `"${str}"`;
+  if (accepted) {
+    resultDiv.innerHTML = `✓ La cadena <strong>${label}</strong> es <strong>ACEPTADA</strong> por el autómata.`;
+  } else {
+    resultDiv.innerHTML = `✗ La cadena <strong>${label}</strong> es <strong>RECHAZADA</strong> por el autómata.`;
+  }
+});
+
+// Redimensionar Canvas si cambia el tamaño de ventana
+window.addEventListener("resize", () => {
+  initCanvas();
+  drawGraph();
+});
+
+// Carga inicial
+window.addEventListener("DOMContentLoaded", () => {
+  initCanvas();
+  procesar();
+});
+</script>
+</body>
+</html>
