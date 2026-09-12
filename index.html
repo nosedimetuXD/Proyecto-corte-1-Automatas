@@ -4,228 +4,386 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Generador de AFN-λ | Teoría de la Computación</title>
+  <title>Generador de AFN-λ</title>
+  <meta name="description" content="Generador y simulador interactivo de Autómatas Finitos No Deterministas con Transiciones Lambda (AFN-λ) a partir de Expresiones Regulares.">
   <link rel="icon" type="image/png" href="lambda_logo.png">
+
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
   <style>
     :root {
-      --primary: #1a56db;
-      --primary-hover: #1e429f;
       --bg: #f8fafc;
       --card-bg: #ffffff;
-      --text-main: #1e293b;
-      --text-muted: #64748b;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --text-subtle: #94a3b8;
       --border: #e2e8f0;
-      --accent: #0ea5e9;
-      --success: #10b981;
-      --danger: #ef4444;
-      --state-bg: #eff6ff;
-      --state-border: #3b82f6;
-      --final-border: #10b981;
+      --border-focus: #3b82f6;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-subtle: #eff6ff;
+      --primary-border: #bfdbfe;
+      --success: #059669;
+      --success-subtle: #ecfdf5;
+      --success-border: #a7f3d0;
+      --danger: #dc2626;
+      --danger-subtle: #fef2f2;
+      --danger-border: #fecaca;
+      --amber: #d97706;
+      --amber-subtle: #fffbeb;
+      --amber-border: #fde68a;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.04);
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     }
 
     body {
       background-color: var(--bg);
       color: var(--text-main);
-      line-height: 1.5;
-      padding: 24px 16px;
+      font-family: "Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 32px 16px 64px 16px;
+      -webkit-font-smoothing: antialiased;
     }
 
     .container {
-      max-width: 1200px;
+      max-width: 1240px;
       margin: 0 auto;
     }
 
+    /* HEADER */
     header {
-      margin-bottom: 24px;
+      margin-bottom: 28px;
     }
 
-    .header-container {
+    .header-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px 28px;
+      box-shadow: var(--shadow-sm);
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: space-between;
       gap: 20px;
       flex-wrap: wrap;
     }
 
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
     .header-logo {
-      width: 72px;
-      height: 72px;
+      width: 64px;
+      height: 64px;
       object-fit: contain;
-      border-radius: 14px;
+      border-radius: var(--radius-md);
       background: #ffffff;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
       border: 1px solid var(--border);
       padding: 6px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      flex-shrink: 0;
     }
 
-    .header-titles {
-      text-align: left;
-    }
-
-    header h1 {
-      font-size: 1.85rem;
+    .header-titles h1 {
+      font-size: 1.55rem;
       font-weight: 800;
-      color: #0f172a;
+      color: var(--text-main);
       letter-spacing: -0.025em;
+      line-height: 1.25;
     }
 
-    header p {
+    .header-titles p {
       color: var(--text-muted);
-      font-size: 0.95rem;
+      font-size: 0.92rem;
       margin-top: 4px;
+      font-weight: 500;
+    }
+
+    .header-badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
     }
 
     .badge-book {
-      display: inline-block;
-      background: #e0e7ff;
-      color: #3730a3;
-      padding: 3px 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--primary-subtle);
+      color: var(--primary);
+      border: 1px solid var(--primary-border);
+      padding: 6px 12px;
       border-radius: 9999px;
       font-size: 0.8rem;
       font-weight: 600;
-      margin-top: 6px;
+      letter-spacing: 0.01em;
     }
 
-    @media (max-width: 640px) {
-      .header-container {
-        flex-direction: column;
-        text-align: center;
-      }
-      .header-titles {
-        text-align: center;
-      }
+    .badge-stat {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #f1f5f9;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 600;
     }
 
+    .badge-stat strong {
+      color: var(--text-main);
+      font-family: "JetBrains Mono", monospace;
+    }
+
+    /* CARD STYLES */
     .card {
       background: var(--card-bg);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
-      margin-bottom: 20px;
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 24px;
     }
 
+    /* INPUT SECTION */
     .input-section {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 16px;
+    }
+
+    .section-label {
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .input-row {
+      display: flex;
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .input-wrapper {
+      position: relative;
+      flex: 1;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-wrapper input {
+      width: 100%;
+      padding: 14px 18px;
+      font-size: 1.15rem;
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 600;
+      color: var(--text-main);
+      background: #ffffff;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-md);
+      outline: none;
+      transition: all 0.2s ease;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
+    }
+
+    .input-wrapper input:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+
+    .btn {
+      padding: 12px 24px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.18s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3);
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+      box-shadow: 0 3px 8px rgba(37, 99, 235, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background: #f1f5f9;
+      color: var(--text-main);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: #e2e8f0;
+      color: var(--primary);
+    }
+
+    /* QUICK INSERT KEYS */
+    .toolbar-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding-top: 4px;
+    }
+
+    .quick-keys {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .quick-keys-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-right: 2px;
+    }
+
+    .key-btn {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 6px 12px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--text-main);
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .key-btn:hover {
+      background: var(--primary-subtle);
+      border-color: var(--primary-border);
+      color: var(--primary);
+      transform: translateY(-1px);
+    }
+
+    .key-btn:active {
+      transform: translateY(0);
+    }
+
+    .examples-select {
       display: flex;
       gap: 10px;
       align-items: center;
     }
 
-    .input-row input {
-      flex: 1;
-      padding: 12px 16px;
-      font-size: 1.1rem;
-      font-family: "Courier New", Courier, monospace;
+    .examples-select label {
+      font-size: 0.85rem;
       font-weight: 600;
-      border: 2px solid var(--border);
-      border-radius: 8px;
+      color: var(--text-muted);
+    }
+
+    .select-custom {
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: #ffffff;
+      font-family: inherit;
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: var(--text-main);
       outline: none;
+      cursor: pointer;
       transition: border-color 0.2s;
     }
 
-    .input-row input:focus {
-      border-color: var(--primary);
+    .select-custom:focus {
+      border-color: var(--border-focus);
     }
 
-    .btn {
-      padding: 10px 20px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
+    #regex-error {
+      display: none;
+      color: var(--danger);
+      background: var(--danger-subtle);
+      border: 1px solid var(--danger-border);
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      font-size: 0.92rem;
+      font-weight: 500;
+      line-height: 1.5;
     }
 
-    .btn-primary {
-      background-color: var(--primary);
-      color: white;
+    /* TABS */
+    .tabs-wrapper {
+      margin-bottom: 24px;
     }
 
-    .btn-primary:hover {
-      background-color: var(--primary-hover);
-    }
-
-    .quick-keys {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    .quick-keys span {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      margin-right: 4px;
-    }
-
-    .key-btn {
-      background: #f1f5f9;
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
-      padding: 4px 10px;
-      font-size: 0.95rem;
-      font-weight: 700;
-      cursor: pointer;
-      color: #334155;
-    }
-
-    .key-btn:hover {
-      background: #e2e8f0;
-      color: var(--primary);
-    }
-
-    .examples-select {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      margin-top: 4px;
-    }
-
-    .examples-select select {
-      padding: 6px 12px;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-      background: white;
-      font-size: 0.9rem;
-      color: var(--text-main);
-    }
-
-    /* Tabs */
     .tabs {
       display: flex;
       border-bottom: 2px solid var(--border);
-      gap: 8px;
-      margin-bottom: 20px;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .tabs::-webkit-scrollbar {
+      display: none;
     }
 
     .tab-btn {
-      padding: 10px 18px;
+      padding: 12px 20px;
       background: none;
       border: none;
-      font-size: 1rem;
+      font-family: inherit;
+      font-size: 0.95rem;
       font-weight: 600;
       color: var(--text-muted);
       cursor: pointer;
-      border-bottom: 3px solid transparent;
+      border-bottom: 2px solid transparent;
       margin-bottom: -2px;
-      transition: all 0.2s;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .tab-btn:hover {
@@ -235,6 +393,23 @@
     .tab-btn.active {
       color: var(--primary);
       border-bottom-color: var(--primary);
+      font-weight: 700;
+    }
+
+    .tab-badge {
+      background: #f1f5f9;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 9999px;
+      border: 1px solid var(--border);
+    }
+
+    .tab-btn.active .tab-badge {
+      background: var(--primary-subtle);
+      color: var(--primary);
+      border-color: var(--primary-border);
     }
 
     .tab-content {
@@ -245,21 +420,25 @@
       display: block;
     }
 
-    /* Canvas / Grafo */
+    /* GRAPH CONTAINER & CANVAS */
     #graph-container {
       position: relative;
       width: 100%;
-      height: 520px;
+      height: 540px;
       border: 1px solid var(--border);
-      border-radius: 10px;
+      border-radius: var(--radius-md);
       background-color: #ffffff;
+      background-image: radial-gradient(#e2e8f0 1.2px, transparent 1.2px);
+      background-size: 24px 24px;
       overflow: hidden;
+      box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.02);
     }
 
     #graph-canvas {
       width: 100%;
       height: 100%;
       cursor: grab;
+      display: block;
     }
 
     #graph-canvas:active {
@@ -268,340 +447,695 @@
 
     .graph-controls {
       position: absolute;
-      bottom: 12px;
-      right: 12px;
+      top: 14px;
+      right: 14px;
       display: flex;
       gap: 6px;
-      background: rgba(255, 255, 255, 0.9);
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(8px);
       padding: 6px;
-      border-radius: 8px;
+      border-radius: var(--radius-md);
       border: 1px solid var(--border);
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      box-shadow: var(--shadow-md);
     }
 
-    .graph-controls button {
-      padding: 6px 10px;
-      background: #f8fafc;
-      border: 1px solid #cbd5e1;
-      border-radius: 4px;
-      font-size: 0.85rem;
-      font-weight: 600;
+    .ctrl-btn {
+      width: 34px;
+      height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-main);
       cursor: pointer;
+      transition: all 0.15s ease;
     }
 
-    .graph-controls button:hover {
-      background: #e2e8f0;
+    .ctrl-btn:hover {
+      background: var(--primary-subtle);
+      border-color: var(--primary-border);
+      color: var(--primary);
     }
 
-    .graph-legend {
+    .ctrl-btn-text {
+      width: auto;
+      padding: 0 10px;
+      font-size: 0.82rem;
+      font-family: inherit;
+    }
+
+    /* GRAPH LEGEND */
+    .graph-legend-bar {
       display: flex;
+      justify-content: space-between;
+      align-items: center;
       gap: 16px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+      padding: 10px 16px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
       font-size: 0.85rem;
-      margin-top: 10px;
-      color: var(--text-muted);
+    }
+
+    .legend-items {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
       align-items: center;
     }
 
     .legend-item {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
+      color: var(--text-muted);
+      font-weight: 500;
     }
 
     .legend-circle {
-      width: 16px;
-      height: 16px;
+      width: 18px;
+      height: 18px;
       border-radius: 50%;
-      border: 2px solid var(--state-border);
-      background: var(--state-bg);
+      border: 2px solid #3b82f6;
+      background: #eff6ff;
     }
 
     .legend-final {
-      border: 3px double var(--final-border);
-      background: #ecfdf5;
+      border: 2.5px double var(--success);
+      background: var(--success-subtle);
     }
 
-    /* Matriz */
-    .table-responsive {
+    .legend-hint {
+      color: var(--text-subtle);
+      font-size: 0.82rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* SIMULATOR COMPONENT */
+    .simulator-card {
+      margin-top: 24px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .sim-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .sim-header h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sim-helper-chips {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .sim-chip {
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2px 8px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .sim-chip:hover {
+      background: var(--primary-subtle);
+      border-color: var(--primary-border);
+      color: var(--primary);
+    }
+
+    .sim-input-row {
+      display: flex;
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .sim-input-row input {
+      flex: 1;
+      padding: 10px 14px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 1rem;
+      font-weight: 600;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .sim-input-row input:focus {
+      border-color: var(--border-focus);
+    }
+
+    .sim-result {
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: var(--radius-md);
+      display: none;
+    }
+
+    .sim-result.accepted {
+      display: block;
+      background: var(--success-subtle);
+      color: #065f46;
+      border: 1px solid var(--success-border);
+    }
+
+    .sim-result.rejected {
+      display: block;
+      background: var(--danger-subtle);
+      color: #991b1b;
+      border: 1px solid var(--danger-border);
+    }
+
+    .trace-timeline {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    .trace-item {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      padding: 6px 8px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 4px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .trace-item:hover {
+      background: rgba(0, 0, 0, 0.04);
+    }
+
+    .trace-step-badge {
+      background: rgba(0, 0, 0, 0.06);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    .trace-state-set {
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 700;
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.85);
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    /* TRANSITION MATRIX */
+    .table-container {
       overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: #ffffff;
     }
 
     table.matrix-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.95rem;
+      font-size: 0.92rem;
       text-align: center;
     }
 
     table.matrix-table th,
     table.matrix-table td {
-      border: 1px solid var(--border);
-      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      padding: 12px 16px;
     }
 
     table.matrix-table th {
-      background-color: #f1f5f9;
-      color: #334155;
+      background-color: #f8fafc;
+      color: var(--text-muted);
       font-weight: 700;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.92rem;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    table.matrix-table tr:last-child td {
+      border-bottom: none;
     }
 
     table.matrix-table tr:hover {
       background-color: #f8fafc;
     }
 
-    .state-cell {
-      font-weight: 700;
-      color: var(--primary);
+    /* Sticky first column for states */
+    table.matrix-table th:first-child,
+    table.matrix-table td:first-child {
+      position: sticky;
+      left: 0;
+      background-color: #f8fafc;
+      z-index: 2;
+      box-shadow: 2px 0 4px -2px rgba(0, 0, 0, 0.08);
       text-align: left;
-      background-color: #fafafa;
+      font-weight: 700;
+      font-family: "JetBrains Mono", monospace;
+      color: var(--primary);
+      width: 130px;
+      min-width: 130px;
+    }
+
+    table.matrix-table td:first-child.is-final {
+      color: var(--success);
     }
 
     .dest-empty {
       color: #94a3b8;
+      font-family: "JetBrains Mono", monospace;
       font-style: italic;
     }
 
     .dest-set {
+      font-family: "JetBrains Mono", monospace;
       font-weight: 600;
       color: #0f172a;
-      background-color: #f0fdf4;
+      background-color: #f1f5f9;
+      border: 1px solid #e2e8f0;
       border-radius: 4px;
-      padding: 2px 6px;
+      padding: 3px 8px;
       display: inline-block;
     }
 
-    /* Función Delta */
-    .formal-card {
+    /* FORMAL 5-TUPLE TAB */
+    .tuple-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .tuple-card {
       background: #f8fafc;
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: var(--radius-md);
       padding: 16px;
-      margin-bottom: 16px;
     }
 
-    .formal-title {
+    .tuple-symbol {
+      font-family: "JetBrains Mono", monospace;
       font-size: 1.1rem;
-      font-weight: 700;
-      margin-bottom: 8px;
+      font-weight: 800;
       color: var(--primary);
+      margin-bottom: 4px;
     }
 
-    .formal-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
+    .tuple-name {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .tuple-value {
+      font-family: "JetBrains Mono", monospace;
       font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-main);
+      word-break: break-all;
     }
 
     .delta-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 8px;
-      margin-top: 12px;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 10px;
+      margin-top: 14px;
     }
 
     .delta-item {
-      background: white;
+      background: #ffffff;
       border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 8px 12px;
-      font-family: "Courier New", Courier, monospace;
-      font-size: 0.95rem;
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.92rem;
       font-weight: 600;
-      color: #1e293b;
-    }
-
-    /* Simulador */
-    .simulator-box {
-      margin-top: 20px;
-      background: #fdfdfd;
-      border: 1px dashed var(--border);
-      border-radius: 8px;
-      padding: 16px;
-    }
-
-    .sim-row {
+      color: var(--text-main);
       display: flex;
-      gap: 10px;
       align-items: center;
-      margin-top: 10px;
+      justify-content: space-between;
+      transition: all 0.15s;
     }
 
-    .sim-row input {
-      padding: 8px 12px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      font-family: monospace;
-      font-size: 1rem;
-      flex: 1;
+    .delta-item:hover {
+      border-color: var(--primary-border);
+      background: var(--primary-subtle);
     }
 
-    .sim-result {
-      margin-top: 10px;
-      padding: 8px 14px;
-      border-radius: 6px;
-      font-weight: 700;
-      display: none;
+    .delta-item .arrow {
+      color: var(--text-muted);
+      font-weight: 400;
     }
 
-    .sim-result.accepted {
-      display: block;
-      background: #dcfce7;
-      color: #166534;
-      border: 1px solid #bbf7d0;
+    /* FOOTER */
+    footer {
+      margin-top: 40px;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
     }
 
-    .sim-result.rejected {
-      display: block;
-      background: #fee2e2;
-      color: #991b1b;
-      border: 1px solid #fecaca;
+    @media (max-width: 768px) {
+      body {
+        padding: 16px 12px 48px 12px;
+      }
+      .header-card {
+        padding: 18px;
+      }
+      .input-row {
+        flex-direction: column;
+      }
+      .btn {
+        width: 100%;
+      }
+      #graph-container {
+        height: 420px;
+      }
+      .toolbar-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
     }
   </style>
 </head>
 
 <body>
 
-  <div class="container">
+  <div class="container" id="app-root">
+
+    <!-- HEADER -->
     <header>
-      <div class="header-container">
-        <img src="lambda_logo.png" alt="Logo Lambda" class="header-logo">
-        <div class="header-titles">
-          <h1>Generador de AFN-λ desde Expresiones Regulares</h1>
-          <p>Autómata Finito No Determinista con Transiciones Lambda</p>
-          <div class="badge-book">Teoría de la Computación — Rodrigo De Castro Korgi (Cap. 2)</div>
+      <div class="header-card" id="header-banner">
+        <div class="header-brand">
+          <img src="lambda_logo.png" alt="Logo AFN Lambda" class="header-logo" id="header-logo-img">
+          <div class="header-titles">
+            <h1>Generador de AFN-λ</h1>
+            <p>Construcción inductiva a partir de Expresiones Regulares con transiciones λ mínimas</p>
+          </div>
+        </div>
+
+        <div class="header-badges">
+          <div class="badge-book" id="book-badge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+            Rodrigo De Castro Korgi (Capítulo 2)
+          </div>
+          <div class="badge-stat" id="stat-states">Estados: <strong id="stat-states-val">0</strong></div>
+          <div class="badge-stat" id="stat-alphabet">Σ: <strong id="stat-alphabet-val">{ }</strong></div>
         </div>
       </div>
     </header>
 
-    <!-- Panel de Entrada -->
-    <div class="card input-section">
+    <!-- PANEL DE ENTRADA -->
+    <div class="card input-section" id="input-card">
+      <div class="section-label">
+        <span>Expresión Regular de Entrada</span>
+        <span style="font-weight: 500; font-size: 0.8rem; text-transform: none; color: var(--text-muted);">Soporta unión |, *, +, concatenación implícita y λ</span>
+      </div>
+
       <div class="input-row">
-        <input type="text" id="regex-input" value="a*(ab|ba)*" placeholder="Escribe la expresión regular (ej. (a|b)*b)"
-          autocomplete="off">
+        <div class="input-wrapper">
+          <input type="text" id="regex-input" value="a*(ab|ba)*" placeholder="Escribe tu expresión regular (ej. (a|b)*b)" autocomplete="off">
+        </div>
         <button class="btn btn-primary" id="btn-generate">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
             <polygon points="5 3 19 12 5 21 5 3"></polygon>
           </svg>
           Generar Autómata
         </button>
       </div>
 
-      <div class="quick-keys">
-        <span>Insertar:</span>
-        <button class="key-btn" data-val="λ">λ </button>
-        <button class="key-btn" data-val="|">∪ / | </button>
-        <button class="key-btn" data-val="*">* </button>
-        <button class="key-btn" data-val="+">+</button>
-        <button class="key-btn" data-val="(">(</button>
-        <button class="key-btn" data-val=")">)</button>
+      <div class="toolbar-row">
+        <div class="quick-keys" id="quick-keys-toolbar">
+          <span class="quick-keys-label">Símbolos rápidos:</span>
+          <button class="key-btn" data-val="λ" title="Transición nula (cadena vacía)">λ</button>
+          <button class="key-btn" data-val="|" title="Unión (| o U)">∪ (|)</button>
+          <button class="key-btn" data-val="*" title="Estrella de Kleene">*</button>
+          <button class="key-btn" data-val="+" title="Clausura positiva">+</button>
+          <button class="key-btn" data-val="(">(</button>
+          <button class="key-btn" data-val=")">)</button>
+        </div>
+
+        <div class="examples-select">
+          <label for="examples-dropdown">Ejemplos del libro:</label>
+          <select id="examples-dropdown" class="select-custom">
+            <option value="a*(ab|ba)*">a*(ab|ba)* (Sección 2.9)</option>
+            <option value="(a|b)*b">(a|b)*b (Terminan en 'b', Sec. 2.4)</option>
+            <option value="(0|1)*00(0|1)*">(0|1)*00(0|1)* (Contienen '00')</option>
+            <option value="a(b|c)*">a(b|c)* (Inician con 'a')</option>
+            <option value="(ab|ba)*">(ab|ba)*</option>
+            <option value="b*ab*ab*">b*ab*ab* (Exactamente dos aes, Sec. 2.3)</option>
+          </select>
+        </div>
       </div>
 
-      <div class="examples-select">
-        <label for="examples-dropdown" style="font-size: 0.85rem; color: var(--text-muted);">Ejemplos del libro:</label>
-        <select id="examples-dropdown">
-          <option value="a*(ab|ba)*">a*(ab|ba)* (Sección 2.9)</option>
-          <option value="(a|b)*b">(a|b)*b (Terminan en 'b', Sec. 2.4)</option>
-          <option value="(0|1)*00(0|1)*">(0|1)*00(0|1)* (Contienen '00')</option>
-          <option value="a(b|c)*">a(b|c)*</option>
-          <option value="(ab|ba)*">(ab|ba)*</option>
-          <option value="b*ab*ab*">b*ab*ab* (Exactamente dos aes, Sec. 2.3)</option>
-        </select>
+      <!-- BANNER DE ERROR INLINE -->
+      <div id="regex-error" role="alert"></div>
+    </div>
+
+    <!-- PESTAÑAS DE VISUALIZACIÓN (ÚNICAMENTE LAS 3 FORMAS SOLICITADAS) -->
+    <div class="tabs-wrapper">
+      <div class="tabs" role="tablist">
+        <button class="tab-btn active" data-tab="tab-graph" id="tab-btn-graph" role="tab" aria-selected="true">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="18" cy="5" r="3"></circle>
+            <circle cx="6" cy="12" r="3"></circle>
+            <circle cx="18" cy="19" r="3"></circle>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+          </svg>
+          1. Grafo Interactivo
+          <span class="tab-badge" id="badge-tab-graph">Visual</span>
+        </button>
+
+        <button class="tab-btn" data-tab="tab-matrix" id="tab-btn-matrix" role="tab" aria-selected="false">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="3" y1="9" x2="21" y2="9"></line>
+            <line x1="3" y1="15" x2="21" y2="15"></line>
+            <line x1="9" y1="3" x2="9" y2="21"></line>
+            <line x1="15" y1="3" x2="15" y2="21"></line>
+          </svg>
+          2. Matriz de Transiciones
+          <span class="tab-badge" id="badge-tab-matrix">Tabla</span>
+        </button>
+
+        <button class="tab-btn" data-tab="tab-delta" id="tab-btn-delta" role="tab" aria-selected="false">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          3. Función Formal Δ(Q, Σ)
+          <span class="tab-badge" id="badge-tab-delta">5-Tupla</span>
+        </button>
       </div>
     </div>
 
-    <!-- Tabs de Visualización -->
-    <div class="tabs">
-      <button class="tab-btn active" data-tab="tab-graph">1. Grafo (Diagrama)</button>
-      <button class="tab-btn" data-tab="tab-matrix">2. Matriz de Transiciones</button>
-      <button class="tab-btn" data-tab="tab-delta">3. Función Formal Δ(Q, Σ)</button>
-    </div>
-
-    <!-- Contenido Tab 1: Grafo -->
-    <div id="tab-graph" class="tab-content active">
-      <div class="card">
+    <!-- TAB 1: GRAFO INTERACTIVO -->
+    <div id="tab-graph" class="tab-content active" role="tabpanel">
+      <div class="card" style="padding: 16px;">
         <div id="graph-container">
           <canvas id="graph-canvas"></canvas>
-          <div class="graph-controls">
-            <button id="btn-zoom-in">+</button>
-            <button id="btn-zoom-out">-</button>
-            <button id="btn-reset-zoom">Centrar</button>
+
+          <div class="graph-controls" id="graph-controls-toolbar">
+            <button class="ctrl-btn" id="btn-zoom-in" title="Acercar (+)">+</button>
+            <button class="ctrl-btn" id="btn-zoom-out" title="Alejar (-)">−</button>
+            <button class="ctrl-btn ctrl-btn-text" id="btn-reset-zoom" title="Restablecer posición inicial">Centrar</button>
+            <button class="ctrl-btn ctrl-btn-text" id="btn-export-png" title="Descargar grafo en imagen PNG">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              PNG
+            </button>
           </div>
         </div>
 
-        <div class="graph-legend">
-          <div class="legend-item">
-            <div class="legend-circle"></div>
-            <span>Estado normal</span>
+        <div class="graph-legend-bar" id="graph-legend">
+          <div class="legend-items">
+            <div class="legend-item">
+              <span style="font-weight: 800; color: var(--primary); font-family: 'JetBrains Mono', monospace;">➔ q₀</span>
+              <span>Estado inicial</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-circle"></div>
+              <span>Estado normal</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-circle legend-final"></div>
+              <span>Estado de aceptación (F)</span>
+            </div>
+            <div class="legend-item">
+              <span style="display:inline-block; width:12px; height:12px; border-radius:50%; border:2px dashed var(--amber); background:var(--amber-subtle);"></span>
+              <span>Activo en simulación</span>
+            </div>
           </div>
-          <div class="legend-item">
-            <div class="legend-circle legend-final"></div>
-            <span>Estado de aceptación (F)</span>
-          </div>
-          <div class="legend-item">
-            <span style="font-weight: bold; color: var(--primary);">➔ q0</span>
-            <span>Estado inicial</span>
-          </div>
-          <div class="legend-item">
-            <span style="color: #64748b;">(Puedes arrastrar los estados para reorganizarlos libremente)</span>
+          <div class="legend-hint">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            Arrastra los estados para acomodar el diagrama libremente
           </div>
         </div>
 
-        <!-- Simulador de Cadenas -->
-        <div class="simulator-box">
-          <h3 style="font-size: 1rem; color: #1e293b;">Simulador de Cadenas en el AFN-λ</h3>
-          <p style="font-size: 0.85rem; color: var(--text-muted);">Prueba si una cadena es aceptada o rechazada por este
-            autómata:</p>
-          <div class="sim-row">
-            <input type="text" id="sim-input" placeholder="Ej. aab, b, etc. (Dejar vacío para cadena vacía λ)">
-            <button class="btn btn-primary" id="btn-test-string">Evaluar Cadena</button>
+        <!-- SIMULADOR INTEGRADO -->
+        <div class="simulator-card" id="simulator-container">
+          <div class="sim-header">
+            <h3>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polygon points="10 8 16 12 10 16 10 8"></polygon>
+              </svg>
+              Simulador de Cadenas en el AFN-λ
+            </h3>
+            <div class="sim-helper-chips">
+              <span>Insertar en prueba:</span>
+              <span class="sim-chip" data-char="λ" title="Evaluar cadena vacía">λ (vacía)</span>
+              <span id="alphabet-chips-container"></span>
+            </div>
           </div>
-          <div id="sim-result" class="sim-result"></div>
+
+          <div class="sim-input-row">
+            <input type="text" id="sim-input" placeholder="Ingresa la cadena a probar (ej. aab, b; o deja vacío para λ)">
+            <button class="btn btn-primary" id="btn-test-string">
+              Evaluar Cadena
+            </button>
+          </div>
+
+          <div id="sim-result" class="sim-result" role="region" aria-live="polite"></div>
         </div>
       </div>
     </div>
 
-    <!-- Contenido Tab 2: Matriz -->
-    <div id="tab-matrix" class="tab-content">
+    <!-- TAB 2: MATRIZ DE TRANSICIONES -->
+    <div id="tab-matrix" class="tab-content" role="tabpanel">
       <div class="card">
-        <h2 style="font-size: 1.2rem; margin-bottom: 12px; color: #0f172a;">Matriz de Transiciones</h2>
-        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 16px;">
-          En cada celda se muestra el subconjunto de estados destino $\Delta(q, s)$. El símbolo <code>∅</code> indica
-          que la transición no está definida (cómputo abortado).
-        </p>
-        <div class="table-responsive" id="matrix-container">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-main);">Matriz de Transiciones Δ(q, s)</h2>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 4px;">
+              Mapeo exhaustivo de cada par <code>(estado, símbolo)</code> hacia su conjunto imagen en ℘(Q). El símbolo <code>∅</code> denota transiciones indefinidas.
+            </p>
+          </div>
+          <div class="badge-stat">
+            Dimensión: <strong id="matrix-dimension">0 × 0</strong>
+          </div>
+        </div>
+
+        <div class="table-container" id="matrix-container">
           <!-- Tabla generada dinámicamente -->
         </div>
       </div>
     </div>
 
-    <!-- Contenido Tab 3: Función Delta -->
-    <div id="tab-delta" class="tab-content">
+    <!-- TAB 3: FUNCIÓN FORMAL DELTA -->
+    <div id="tab-delta" class="tab-content" role="tabpanel">
       <div class="card">
-        <div class="formal-card">
-          <div class="formal-title">Quíntupla Formal del Autómata: M = (Σ, Q, q₀, F, Δ)</div>
-          <ul class="formal-list" id="formal-details">
-            <!-- Detalles formales inyectados por JS -->
-          </ul>
+        <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">
+          Quíntupla Formal del Autómata: M = (Σ, Q, q₀, F, Δ)
+        </h2>
+        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px;">
+          Definición matemática rigurosa siguiendo las convenciones del texto de Rodrigo De Castro.
+        </p>
+
+        <!-- CARDS DE LA 5-TUPLA -->
+        <div class="tuple-grid" id="tuple-summary-grid">
+          <div class="tuple-card">
+            <div class="tuple-symbol">Σ</div>
+            <div class="tuple-name">Alfabeto de Entrada</div>
+            <div class="tuple-value" id="tuple-sigma">{ }</div>
+          </div>
+          <div class="tuple-card">
+            <div class="tuple-symbol">Q</div>
+            <div class="tuple-name">Conjunto de Estados</div>
+            <div class="tuple-value" id="tuple-q">{ }</div>
+          </div>
+          <div class="tuple-card">
+            <div class="tuple-symbol">q₀</div>
+            <div class="tuple-name">Estado Inicial</div>
+            <div class="tuple-value" id="tuple-q0">q0</div>
+          </div>
+          <div class="tuple-card">
+            <div class="tuple-symbol">F</div>
+            <div class="tuple-name">Estados de Aceptación</div>
+            <div class="tuple-value" id="tuple-f">{ }</div>
+          </div>
         </div>
 
-        <h2 style="font-size: 1.15rem; margin-bottom: 8px; color: #0f172a;">
-          Valores explícitos de la Función de Transición: Δ : Q × (Σ ∪ {λ}) ➔ ℘(Q)
-        </h2>
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
-          Se detallan únicamente las transiciones activas no vacías:
-        </p>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 28px; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+          <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-main);">
+            Imágenes de la Función de Transición Δ : Q × (Σ ∪ {λ}) ➔ ℘(Q)
+          </h3>
+          <span class="badge-stat" id="delta-active-count">0 transiciones activas</span>
+        </div>
+
         <div class="delta-grid" id="delta-grid-container">
           <!-- Tarjetas de transiciones -->
         </div>
       </div>
     </div>
+
+    <footer>
+      <p>Generador de AFN-λ • Basado en el libro <em>Teoría de la Computación</em> de Rodrigo De Castro Korgi (Universidad Nacional de Colombia)</p>
+    </footer>
+
   </div>
 
   <script>
     // ============================================================================
-    // NÚCLEO DE LA CONSTRUCCIÓN DE THOMPSON (AFN-λ)
+    // NÚCLEO DE LA CONSTRUCCIÓN CON LAMBDAS MÍNIMAS (AFN-λ)
     // ============================================================================
     const LAMBDA = "λ";
 
@@ -896,7 +1430,8 @@
       let inicial = clausura(new Set([afn.q0]));
       pasos.push({
         paso: 0,
-        accion: `Inicio en q₀ y cálculo de λ-clausura`,
+        simbolo: "λ (inicio)",
+        accion: `Inicio en q₀ y expansión por λ-clausura`,
         estados: ordenarEstados(inicial)
       });
 
@@ -923,7 +1458,8 @@
         actuales = clausura(siguientes);
         pasos.push({
           paso: i + 1,
-          accion: `Consumiendo símbolo '${c}' (y expansión por transiciones λ)`,
+          simbolo: c,
+          accion: `Consumiendo símbolo '${c}' (y transiciones λ)`,
           estados: ordenarEstados(actuales)
         });
 
@@ -961,19 +1497,19 @@
 
     function initCanvas() {
       const container = document.getElementById("graph-container");
-      canvas.width = container.clientWidth * window.devicePixelRatio;
-      canvas.height = container.clientHeight * window.devicePixelRatio;
-      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = container.clientWidth * dpr;
+      canvas.height = container.clientHeight * dpr;
+      ctx.resetTransform();
+      ctx.scale(dpr, dpr);
     }
 
     function layoutNodes(afn) {
       nodePositions.clear();
-      const n = afn.Q.length;
       const container = document.getElementById("graph-container");
-      const width = container.clientWidth;
-      const height = container.clientHeight;
+      const width = container.clientWidth || 900;
+      const height = container.clientHeight || 540;
 
-      // Organizar estados en capas de izquierda a derecha (usando BFS)
       let niveles = new Map();
       niveles.set(afn.q0, 0);
       let cola = [afn.q0];
@@ -997,7 +1533,6 @@
         }
       }
 
-      // Agrupar por nivel
       let gruposNivel = new Map();
       let maxLvl = 0;
       for (let q of afn.Q) {
@@ -1007,11 +1542,11 @@
         gruposNivel.get(lvl).push(q);
       }
 
-      const paddingX = 80;
+      const paddingX = 90;
       const pasoX = maxLvl > 0 ? (width - paddingX * 2) / maxLvl : 0;
 
       for (let [lvl, nodos] of gruposNivel.entries()) {
-        let x = paddingX + lvl * Math.max(pasoX, 90);
+        let x = paddingX + lvl * Math.max(pasoX, 110);
         let pasoY = height / (nodos.length + 1);
         nodos.forEach((q, idx) => {
           let y = pasoY * (idx + 1);
@@ -1038,7 +1573,7 @@
         return;
       }
 
-      const NODE_RADIUS = 22;
+      const NODE_RADIUS = 24;
 
       // Agrupar transiciones entre pares
       let edgeMap = new Map();
@@ -1048,7 +1583,7 @@
         edgeMap.get(key).symbols.push(s);
       }
 
-      // 1. Dibujar arcos
+      // 1. DIBUJAR ARCOS
       for (let { u, v, symbols } of edgeMap.values()) {
         let p1 = nodePositions.get(u);
         let p2 = nodePositions.get(v);
@@ -1058,24 +1593,34 @@
         let isSelf = (u === v);
 
         ctx.strokeStyle = "#64748b";
-        ctx.fillStyle = "#1e293b";
+        ctx.fillStyle = "#0f172a";
         ctx.lineWidth = 1.8;
-        ctx.font = "bold 13px system-ui";
+        ctx.font = "600 12px 'JetBrains Mono', monospace";
 
         if (isSelf) {
-          // Bucle
-          let loopRadius = 18;
+          let loopRadius = 20;
           let cx = p1.x;
-          let cy = p1.y - NODE_RADIUS - loopRadius;
+          let cy = p1.y - NODE_RADIUS - loopRadius + 3;
           ctx.beginPath();
           ctx.arc(cx, cy, loopRadius, 0, Math.PI * 2);
           ctx.stroke();
 
-          // Flecha del bucle
-          drawArrowHead(cx + loopRadius, cy + 5, 0, 1);
-          ctx.fillText(label, cx, cy - loopRadius - 4);
+          drawArrowHead(cx + loopRadius, cy + 4, 0, 1);
+
+          ctx.save();
+          let metrics = ctx.measureText(label);
+          ctx.fillStyle = "#ffffff";
+          ctx.strokeStyle = "#e2e8f0";
+          ctx.lineWidth = 1;
+          roundRect(ctx, cx - metrics.width / 2 - 5, cy - loopRadius - 16, metrics.width + 10, 18, 4);
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = "#0f172a";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(label, cx, cy - loopRadius - 7);
+          ctx.restore();
         } else {
-          // Arco dirigido
           let hasReverse = edgeMap.has(`${v}__${u}`);
           let dx = p2.x - p1.x;
           let dy = p2.y - p1.y;
@@ -1083,7 +1628,7 @@
           let nx = dx / dist;
           let ny = dy / dist;
 
-          let curvature = hasReverse ? 30 : 0;
+          let curvature = hasReverse ? 34 : 0;
           let mx = (p1.x + p2.x) / 2 - ny * curvature;
           let my = (p1.y + p2.y) / 2 + nx * curvature;
 
@@ -1096,7 +1641,6 @@
           }
           ctx.stroke();
 
-          // Cabeza de flecha
           let endX = p2.x - nx * NODE_RADIUS;
           let endY = p2.y - ny * NODE_RADIUS;
           let dirX = curvature !== 0 ? endX - mx : nx;
@@ -1104,22 +1648,27 @@
           let dLen = Math.sqrt(dirX * dirX + dirY * dirY);
           drawArrowHead(endX, endY, dirX / dLen, dirY / dLen);
 
-          // Texto de etiqueta con fondo blanco para legibilidad
           let textX = (p1.x + p2.x) / 2 - ny * (curvature * 0.7);
-          let textY = (p1.y + p2.y) / 2 + nx * (curvature * 0.7) - 6;
+          let textY = (p1.y + p2.y) / 2 + nx * (curvature * 0.7);
 
           ctx.save();
           let metrics = ctx.measureText(label);
-          ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
-          ctx.fillRect(textX - metrics.width / 2 - 3, textY - 11, metrics.width + 6, 15);
+          ctx.fillStyle = "#ffffff";
+          ctx.strokeStyle = "#e2e8f0";
+          ctx.lineWidth = 1;
+          roundRect(ctx, textX - metrics.width / 2 - 5, textY - 10, metrics.width + 10, 20, 4);
+          ctx.fill();
+          ctx.stroke();
+
           ctx.fillStyle = "#0f172a";
           ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
           ctx.fillText(label, textX, textY);
           ctx.restore();
         }
       }
 
-      // 2. Dibujar nodos
+      // 2. DIBUJAR NODOS (ESTADOS)
       for (let q of currentAFN.Q) {
         let p = nodePositions.get(q);
         if (!p) continue;
@@ -1127,53 +1676,55 @@
         let isFinal = currentAFN.F.has(q);
         let isInitial = (q === currentAFN.q0);
 
-        // Flecha de estado inicial
         if (isInitial) {
-          ctx.strokeStyle = "#1a56db";
+          ctx.strokeStyle = "#2563eb";
           ctx.lineWidth = 2.5;
           ctx.beginPath();
-          ctx.moveTo(p.x - NODE_RADIUS - 30, p.y);
+          ctx.moveTo(p.x - NODE_RADIUS - 32, p.y);
           ctx.lineTo(p.x - NODE_RADIUS, p.y);
           ctx.stroke();
-          drawArrowHead(p.x - NODE_RADIUS, p.y, 1, 0, "#1a56db");
+          drawArrowHead(p.x - NODE_RADIUS, p.y, 1, 0, "#2563eb");
+
+          ctx.save();
+          ctx.fillStyle = "#2563eb";
+          ctx.font = "bold 11px 'Plus Jakarta Sans', sans-serif";
+          ctx.textAlign = "right";
+          ctx.fillText("inicio", p.x - NODE_RADIUS - 36, p.y + 4);
+          ctx.restore();
         }
 
-        // Resaltado de estados alcanzados en la evaluación de cadena
         let isHighlighted = highlightedStates.has(q);
         if (isHighlighted) {
           ctx.save();
           ctx.beginPath();
-          ctx.arc(p.x, p.y, NODE_RADIUS + 7, 0, Math.PI * 2);
-          ctx.fillStyle = isFinal ? "rgba(16, 185, 129, 0.25)" : "rgba(239, 68, 68, 0.2)";
+          ctx.arc(p.x, p.y, NODE_RADIUS + 8, 0, Math.PI * 2);
+          ctx.fillStyle = isFinal ? "rgba(5, 150, 105, 0.2)" : "rgba(217, 119, 6, 0.22)";
           ctx.fill();
           ctx.lineWidth = 2.5;
           ctx.setLineDash([4, 3]);
-          ctx.strokeStyle = isFinal ? "#10b981" : "#ef4444";
+          ctx.strokeStyle = isFinal ? "#059669" : "#d97706";
           ctx.stroke();
           ctx.restore();
         }
 
-        // Círculo principal
         ctx.beginPath();
         ctx.arc(p.x, p.y, NODE_RADIUS, 0, Math.PI * 2);
-        ctx.fillStyle = isFinal ? "#ecfdf5" : "#eff6ff";
+        ctx.fillStyle = isFinal ? "#ecfdf5" : "#ffffff";
         ctx.fill();
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = isFinal ? "#10b981" : "#3b82f6";
+        ctx.lineWidth = 2.2;
+        ctx.strokeStyle = isFinal ? "#059669" : "#3b82f6";
         ctx.stroke();
 
-        // Si es final, doble círculo
         if (isFinal) {
           ctx.beginPath();
-          ctx.arc(p.x, p.y, NODE_RADIUS - 4, 0, Math.PI * 2);
-          ctx.strokeStyle = "#10b981";
-          ctx.lineWidth = 1.5;
+          ctx.arc(p.x, p.y, NODE_RADIUS - 4.5, 0, Math.PI * 2);
+          ctx.strokeStyle = "#059669";
+          ctx.lineWidth = 1.6;
           ctx.stroke();
         }
 
-        // Etiqueta del nodo
         ctx.fillStyle = "#0f172a";
-        ctx.font = "bold 13px system-ui";
+        ctx.font = "600 13px 'JetBrains Mono', monospace";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText(q, p.x, p.y);
@@ -1183,29 +1734,42 @@
     }
 
     function drawArrowHead(x, y, dx, dy, color = "#64748b") {
-      const size = 8;
+      const size = 9;
       ctx.save();
       ctx.fillStyle = color;
       ctx.beginPath();
       ctx.moveTo(x, y);
-      ctx.lineTo(x - size * dx - size * 0.5 * (-dy), y - size * dy - size * 0.5 * dx);
-      ctx.lineTo(x - size * dx + size * 0.5 * (-dy), y - size * dy + size * 0.5 * dx);
+      ctx.lineTo(x - size * dx - size * 0.45 * (-dy), y - size * dy - size * 0.45 * dx);
+      ctx.lineTo(x - size * dx + size * 0.45 * (-dy), y - size * dy + size * 0.45 * dx);
       ctx.closePath();
       ctx.fill();
       ctx.restore();
     }
 
-    // Eventos del Canvas (Arrastrar nodos, zoom, paneo)
+    function roundRect(context, x, y, width, height, radius) {
+      context.beginPath();
+      context.moveTo(x + radius, y);
+      context.lineTo(x + width - radius, y);
+      context.quadraticCurveTo(x + width, y, x + width, y + radius);
+      context.lineTo(x + width, y + height - radius);
+      context.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      context.lineTo(x + radius, y + height);
+      context.quadraticCurveTo(x, y + height, x, y + height - radius);
+      context.lineTo(x, y + radius);
+      context.quadraticCurveTo(x, y, x + radius, y);
+      context.closePath();
+    }
+
+    // EVENTOS DEL CANVAS
     canvas.addEventListener("mousedown", (e) => {
       const rect = canvas.getBoundingClientRect();
       const mx = (e.clientX - rect.left - pan.x) / zoom;
       const my = (e.clientY - rect.top - pan.y) / zoom;
 
-      // Comprobar si se hizo click en un nodo
       draggedNode = null;
       for (let [q, p] of nodePositions.entries()) {
         let d = Math.hypot(p.x - mx, p.y - my);
-        if (d <= 24) {
+        if (d <= 26) {
           draggedNode = q;
           break;
         }
@@ -1243,19 +1807,30 @@
       const factor = e.deltaY < 0 ? 1.1 : 0.9;
       zoom = Math.min(Math.max(zoom * factor, 0.4), 3.0);
       drawGraph();
-    });
+    }, { passive: false });
 
     document.getElementById("btn-zoom-in").addEventListener("click", () => {
       zoom = Math.min(zoom * 1.2, 3.0);
       drawGraph();
     });
+
     document.getElementById("btn-zoom-out").addEventListener("click", () => {
       zoom = Math.max(zoom * 0.8, 0.4);
       drawGraph();
     });
+
     document.getElementById("btn-reset-zoom").addEventListener("click", () => {
       if (currentAFN) layoutNodes(currentAFN);
       drawGraph();
+    });
+
+    document.getElementById("btn-export-png").addEventListener("click", () => {
+      if (!canvas) return;
+      const link = document.createElement("a");
+      const safeName = (currentAFN?.er || "afn_lambda").replace(/[^a-zA-Z0-9]/g, "_");
+      link.download = `afn_${safeName}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
     });
 
     // ============================================================================
@@ -1264,6 +1839,8 @@
     function renderMatriz(afn) {
       const container = document.getElementById("matrix-container");
       const columnas = [...afn.Sigma, LAMBDA];
+
+      document.getElementById("matrix-dimension").textContent = `${afn.Q.length} × ${columnas.length}`;
 
       let html = '<table class="matrix-table"><thead><tr>';
       html += '<th>Estado (Q)</th>';
@@ -1277,8 +1854,9 @@
         let isFinal = afn.F.has(q);
         let prefix = isInitial ? "➔ " : "";
         let suffix = isFinal ? " *" : "";
+        let finalClass = isFinal ? " is-final" : "";
 
-        html += `<tr><td class="state-cell">${prefix}${q}${suffix}</td>`;
+        html += `<tr><td class="state-cell${finalClass}">${prefix}${q}${suffix}</td>`;
 
         for (let c of columnas) {
           let destinos = [];
@@ -1301,18 +1879,15 @@
     }
 
     function renderFormal(afn) {
-      const formalDetails = document.getElementById("formal-details");
-      formalDetails.innerHTML = `
-    <li><strong>Expresión Regular:</strong> <code>${afn.er}</code></li>
-    <li><strong>Alfabeto de entrada (Σ):</strong> { ${afn.Sigma.join(", ")} }</li>
-    <li><strong>Conjunto de estados (Q):</strong> { ${afn.Q.join(", ")} } &nbsp;(Total: <strong>${afn.Q.length}</strong> estados)</li>
-    <li><strong>Estado inicial (q₀):</strong> <code>${afn.q0}</code></li>
-    <li><strong>Estados de aceptación (F):</strong> { ${Array.from(afn.F).join(", ")} }</li>
-  `;
+      document.getElementById("tuple-sigma").textContent = `{ ${afn.Sigma.join(", ")} }`;
+      document.getElementById("tuple-q").textContent = `{ ${afn.Q.join(", ")} }`;
+      document.getElementById("tuple-q0").textContent = afn.q0;
+      document.getElementById("tuple-f").textContent = `{ ${Array.from(afn.F).join(", ")} }`;
 
       const grid = document.getElementById("delta-grid-container");
       const columnas = [...afn.Sigma, LAMBDA];
       let itemsHtml = "";
+      let activeCount = 0;
 
       for (let q of afn.Q) {
         for (let c of columnas) {
@@ -1323,12 +1898,37 @@
           destinos.sort((a, b) => parseInt(a.slice(1)) - parseInt(b.slice(1)));
 
           if (destinos.length > 0) {
-            itemsHtml += `<div class="delta-item">Δ(${q}, ${c}) = { ${destinos.join(", ")} }</div>`;
+            activeCount++;
+            itemsHtml += `
+              <div class="delta-item">
+                <span>Δ(<strong>${q}</strong>, <strong>${c}</strong>)</span>
+                <span class="arrow">➔</span>
+                <span style="font-weight: 700; color: var(--primary);">{ ${destinos.join(", ")} }</span>
+              </div>
+            `;
           }
         }
       }
 
+      document.getElementById("delta-active-count").textContent = `${activeCount} transiciones activas`;
       grid.innerHTML = itemsHtml || '<p style="color:var(--text-muted);">No hay transiciones activas.</p>';
+    }
+
+    function updateAlphabetChips(afn) {
+      const container = document.getElementById("alphabet-chips-container");
+      container.innerHTML = "";
+      for (let s of afn.Sigma) {
+        let chip = document.createElement("span");
+        chip.className = "sim-chip";
+        chip.textContent = s;
+        chip.setAttribute("data-char", s);
+        chip.addEventListener("click", () => {
+          const input = document.getElementById("sim-input");
+          input.value += s;
+          input.focus();
+        });
+        container.appendChild(chip);
+      }
     }
 
     // ============================================================================
@@ -1338,31 +1938,47 @@
 
     function procesar() {
       const input = document.getElementById("regex-input").value;
+      const errorDiv = document.getElementById("regex-error");
+      if (errorDiv) {
+        errorDiv.style.display = "none";
+        errorDiv.textContent = "";
+      }
+
       try {
         currentAFN = generador.construir(input);
+
+        document.getElementById("stat-states-val").textContent = currentAFN.Q.length;
+        document.getElementById("stat-alphabet-val").textContent = `{ ${currentAFN.Sigma.join(", ")} }`;
+
         layoutNodes(currentAFN);
         drawGraph();
         renderMatriz(currentAFN);
         renderFormal(currentAFN);
+        updateAlphabetChips(currentAFN);
 
         highlightedStates.clear();
         const resultDiv = document.getElementById("sim-result");
         resultDiv.style.display = "none";
         resultDiv.innerHTML = "";
       } catch (err) {
-        alert("Error al procesar la expresión regular: " + err.message);
+        if (errorDiv) {
+          errorDiv.style.display = "block";
+          errorDiv.textContent = "Error al procesar la expresión regular: " + err.message;
+        } else {
+          console.error("Error al procesar la expresión regular:", err);
+        }
       }
     }
 
     // Botón Generar
     document.getElementById("btn-generate").addEventListener("click", procesar);
 
-    // Tecla Enter en el input
+    // Tecla Enter en el input de regex
     document.getElementById("regex-input").addEventListener("keydown", (e) => {
       if (e.key === "Enter") procesar();
     });
 
-    // Dropdown de ejemplos
+    // Dropdown de ejemplos del libro
     document.getElementById("examples-dropdown").addEventListener("change", (e) => {
       document.getElementById("regex-input").value = e.target.value;
       procesar();
@@ -1380,22 +1996,41 @@
       });
     });
 
+    // Chips en simulador
+    const lambdaChip = document.querySelector(".sim-chip[data-char='λ']");
+    if (lambdaChip) {
+      lambdaChip.addEventListener("click", () => {
+        const input = document.getElementById("sim-input");
+        input.value = "";
+        input.focus();
+        document.getElementById("btn-test-string").click();
+      });
+    }
+
     // Pestañas (Tabs)
     document.querySelectorAll(".tab-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
-        document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+        document.querySelectorAll(".tab-btn").forEach((b) => {
+          b.classList.remove("active");
+          b.setAttribute("aria-selected", "false");
+        });
         document.querySelectorAll(".tab-content").forEach((c) => c.classList.remove("active"));
 
         btn.classList.add("active");
-        document.getElementById(btn.getAttribute("data-tab")).classList.add("active");
+        btn.setAttribute("aria-selected", "true");
+        const targetTab = document.getElementById(btn.getAttribute("data-tab"));
+        if (targetTab) {
+          targetTab.classList.add("active");
+        }
 
         if (btn.getAttribute("data-tab") === "tab-graph") {
+          initCanvas();
           drawGraph();
         }
       });
     });
 
-    // Simulador
+    // SIMULADOR DE CADENAS
     document.getElementById("btn-test-string").addEventListener("click", () => {
       if (!currentAFN) return;
       const str = document.getElementById("sim-input").value.trim();
@@ -1409,49 +2044,64 @@
       let html = "";
 
       if (res.simboloInvalido) {
-        html += `<div style="font-size: 1rem; margin-bottom: 6px;">❌ <strong>Rechazada:</strong> El símbolo <code>'${res.simboloInvalido}'</code> no pertenece al alfabeto Σ = { ${currentAFN.Sigma.join(", ")} }.</div>`;
+        html += `<div style="font-size: 1.05rem; font-weight:700; margin-bottom: 6px;">❌ Símbolo no reconocido</div>`;
+        html += `<div>El símbolo <code>'${res.simboloInvalido}'</code> no pertenece al alfabeto Σ = { ${currentAFN.Sigma.join(", ")} }.</div>`;
       } else if (res.aceptada) {
-        html += `<div style="font-size: 1rem; margin-bottom: 6px;">✓ <strong>¡Cadena ACEPTADA!</strong> La cadena <strong>${label}</strong> fue reconocida con éxito.</div>`;
-        html += `<div style="font-size: 0.9rem; margin-bottom: 8px;">Estado(s) de aceptación alcanzado(s): <strong>{ ${res.finalesAlcanzados.join(", ")} }</strong> ⊆ F.</div>`;
+        html += `<div style="font-size: 1.05rem; font-weight:700; margin-bottom: 6px;">✓ ¡Cadena Aceptada!</div>`;
+        html += `<div>La cadena <strong>${label}</strong> alcanza el conjunto de aceptación: <strong>{ ${res.finalesAlcanzados.join(", ")} }</strong> ⊆ F.</div>`;
       } else {
-        html += `<div style="font-size: 1rem; margin-bottom: 6px;">✗ <strong>Cadena RECHAZADA:</strong> La cadena <strong>${label}</strong> no es aceptada por el autómata.</div>`;
+        html += `<div style="font-size: 1.05rem; font-weight:700; margin-bottom: 6px;">✗ Cadena Rechazada</div>`;
         let alcanzadosStr = res.estadosFinales.length > 0 ? `{ ${res.estadosFinales.join(", ")} }` : "∅ (cómputo abortado)";
-        html += `<div style="font-size: 0.9rem; margin-bottom: 8px;">El autómata finalizó en el conjunto de estados: <strong>${alcanzadosStr}</strong>, ninguno de los cuales pertenece al conjunto de aceptación F = { ${Array.from(currentAFN.F).join(", ")} }.</div>`;
+        html += `<div>El cómputo concluyó en los estados: <strong>${alcanzadosStr}</strong>, ninguno de los cuales pertenece al conjunto de aceptación F = { ${Array.from(currentAFN.F).join(", ")} }.</div>`;
       }
 
-      // Desglose paso a paso
-      html += '<div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.1); font-weight: normal; font-size: 0.88rem;">';
-      html += '<strong>Recorrido paso a paso (estados activos por transiciones y λ-clausura):</strong>';
-      html += '<ol style="margin-left: 20px; margin-top: 6px;">';
-      for (let p of res.pasos) {
-        let estStr = p.estados.length > 0 ? `{ ${p.estados.join(", ")} }` : '∅ (cómputo abortado)';
-        html += `<li style="margin-bottom: 4px;"><strong>${p.accion}:</strong> <span style="font-family: monospace; font-weight: bold;">${estStr}</span></li>`;
-      }
-      html += '</ol>';
-      html += '<div style="margin-top: 8px; color: #475569; font-style: italic;">* Los estados en los que finalizó el procesamiento aparecen resaltados con un aro punteado en el grafo.</div>';
+      // Línea de tiempo de pasos
+      html += '<div class="trace-timeline">';
+      html += '<div style="font-weight: 700; font-size: 0.88rem; margin-bottom: 8px;">Traza detallada de cómputo (haz clic en cualquier paso para resaltarlo en el grafo):</div>';
+      res.pasos.forEach((p, idx) => {
+        let estStr = p.estados.length > 0 ? `{ ${p.estados.join(", ")} }` : "∅";
+        html += `
+          <div class="trace-item" data-step-idx="${idx}" title="Ver estados activos en el grafo">
+            <span class="trace-step-badge">Paso ${p.paso}</span>
+            <span style="flex:1;">${p.accion}</span>
+            <span class="trace-state-set">${estStr}</span>
+          </div>
+        `;
+      });
       html += '</div>';
 
       resultDiv.innerHTML = html;
 
-      // Resaltar en el grafo los estados donde concluyó el procesamiento
+      // Click en cada paso de la traza para resaltar esos estados
+      resultDiv.querySelectorAll(".trace-item").forEach((item) => {
+        item.addEventListener("click", () => {
+          let sIdx = parseInt(item.getAttribute("data-step-idx"));
+          let st = res.pasos[sIdx];
+          if (st) {
+            highlightedStates = new Set(st.estados);
+            drawGraph();
+          }
+        });
+      });
+
+      // Resaltar por defecto los estados finales de la evaluación
       highlightedStates = new Set(res.estadosFinales);
       drawGraph();
     });
 
-    // Permitir evaluar presionando Enter en la caja de texto
     document.getElementById("sim-input").addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         document.getElementById("btn-test-string").click();
       }
     });
 
-    // Redimensionar Canvas si cambia el tamaño de ventana
+    // Redimensionar Canvas
     window.addEventListener("resize", () => {
       initCanvas();
       drawGraph();
     });
 
-    // Carga inicial
+    // Inicialización al cargar la página
     window.addEventListener("DOMContentLoaded", () => {
       initCanvas();
       procesar();
