@@ -423,18 +423,6 @@
       color: #991b1b;
       border: 1px solid #fecaca;
     }
-
-    /* Mermaid code block */
-    pre.code-block {
-      background: #0f172a;
-      color: #e2e8f0;
-      padding: 14px;
-      border-radius: 8px;
-      overflow-x: auto;
-      font-family: monospace;
-      font-size: 0.85rem;
-      margin-top: 10px;
-    }
   </style>
 </head>
 <body>
@@ -484,7 +472,6 @@
     <button class="tab-btn active" data-tab="tab-graph">1. Grafo (Diagrama)</button>
     <button class="tab-btn" data-tab="tab-matrix">2. Matriz de Transiciones</button>
     <button class="tab-btn" data-tab="tab-delta">3. Función Formal Δ(Q, Σ)</button>
-    <button class="tab-btn" data-tab="tab-export">Código Mermaid / DOT</button>
   </div>
 
   <!-- Contenido Tab 1: Grafo -->
@@ -562,17 +549,6 @@
       <div class="delta-grid" id="delta-grid-container">
         <!-- Tarjetas de transiciones -->
       </div>
-    </div>
-  </div>
-
-  <!-- Contenido Tab 4: Exportar -->
-  <div id="tab-export" class="tab-content">
-    <div class="card">
-      <h2 style="font-size: 1.1rem; margin-bottom: 8px;">Código Mermaid (Diagramas Markdown)</h2>
-      <pre class="code-block" id="export-mermaid"></pre>
-
-      <h2 style="font-size: 1.1rem; margin-top: 20px; margin-bottom: 8px;">Código Graphviz (DOT)</h2>
-      <pre class="code-block" id="export-dot"></pre>
     </div>
   </div>
 </div>
@@ -1209,40 +1185,6 @@ function renderFormal(afn) {
   grid.innerHTML = itemsHtml || '<p style="color:var(--text-muted);">No hay transiciones activas.</p>';
 }
 
-function renderExports(afn) {
-  // Mermaid
-  let mermaid = "graph LR\n";
-  mermaid += `    start_node(( )) -->|inicio| ${afn.q0}\n`;
-  mermaid += "    style start_node fill:#fff,stroke:#fff,stroke-width:0px\n";
-  for (let q of afn.Q) {
-    if (afn.F.has(q)) {
-      mermaid += `    ${q}((( "${q} [Final]" )))\n`;
-    } else {
-      mermaid += `    ${q}(( "${q}" ))\n`;
-    }
-  }
-  for (let [u, s, v] of afn.transiciones) {
-    mermaid += `    ${u} -->|"${s}"| ${v}\n`;
-  }
-  document.getElementById("export-mermaid").textContent = mermaid;
-
-  // DOT
-  let dot = 'digraph AFN_Lambda {\n';
-  dot += '    rankdir=LR;\n';
-  dot += '    node [shape = circle];\n\n';
-  dot += '    __start [shape=none, label="", width=0, height=0];\n';
-  dot += `    __start -> "${afn.q0}" [label="inicio"];\n\n`;
-  for (let f of afn.F) {
-    dot += `    "${f}" [shape=doublecircle];\n`;
-  }
-  dot += '\n';
-  for (let [u, s, v] of afn.transiciones) {
-    dot += `    "${u}" -> "${v}" [label="${s}"];\n`;
-  }
-  dot += '}\n';
-  document.getElementById("export-dot").textContent = dot;
-}
-
 // ============================================================================
 // CONTROLADOR GENERAL
 // ============================================================================
@@ -1256,7 +1198,6 @@ function procesar() {
     drawGraph();
     renderMatriz(currentAFN);
     renderFormal(currentAFN);
-    renderExports(currentAFN);
 
     document.getElementById("sim-result").style.display = "none";
   } catch (err) {
