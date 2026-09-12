@@ -714,42 +714,82 @@
             if (pila.length < 2) throw new Error("Error en unión '|'");
             let b = pila.pop();
             let a = pila.pop();
-            let sIni = this.nuevoEstado();
-            let sFin = this.nuevoEstado();
-            let trans = [...a.transitions, ...b.transitions];
-            trans.push([sIni, LAMBDA, a.start]);
-            trans.push([sIni, LAMBDA, b.start]);
-            trans.push([a.accept, LAMBDA, sFin]);
-            trans.push([b.accept, LAMBDA, sFin]);
+
+            let aStartIn = a.transitions.some(t => t[2] === a.start);
+            let bStartIn = b.transitions.some(t => t[2] === b.start);
+            let trans = a.transitions.concat(b.transitions).map(t => [...t]);
+
+            let sIni;
+            if (!aStartIn && !bStartIn) {
+              sIni = this.nuevoEstado();
+              for (let t of trans) {
+                if (t[0] === a.start) t[0] = sIni;
+                if (t[0] === b.start) t[0] = sIni;
+              }
+            } else {
+              sIni = this.nuevoEstado();
+              trans.push([sIni, LAMBDA, a.start]);
+              trans.push([sIni, LAMBDA, b.start]);
+            }
+
+            let aAccOut = a.transitions.some(t => t[0] === a.accept);
+            let bAccOut = b.transitions.some(t => t[0] === b.accept);
+
+            let sFin;
+            if (!aAccOut && !bAccOut) {
+              sFin = this.nuevoEstado();
+              for (let t of trans) {
+                if (t[2] === a.accept) t[2] = sFin;
+                if (t[2] === b.accept) t[2] = sFin;
+              }
+            } else {
+              sFin = this.nuevoEstado();
+              trans.push([a.accept, LAMBDA, sFin]);
+              trans.push([b.accept, LAMBDA, sFin]);
+            }
+
             pila.push(new FragmentoAFN(sIni, sFin, trans));
+
           } else if (token === "·") {
             if (pila.length < 2) throw new Error("Error en concatenación");
             let b = pila.pop();
             let a = pila.pop();
-            let trans = [...a.transitions, ...b.transitions];
-            trans.push([a.accept, LAMBDA, b.start]);
-            pila.push(new FragmentoAFN(a.start, b.accept, trans));
+
+            let trans = a.transitions.concat(b.transitions).map(t => [...t]);
+            if (a.start !== a.accept && b.start !== b.accept) {
+              for (let t of trans) {
+                if (t[0] === b.start) t[0] = a.accept;
+                if (t[2] === b.start) t[2] = a.accept;
+              }
+              pila.push(new FragmentoAFN(a.start, b.accept, trans));
+            } else {
+              trans.push([a.accept, LAMBDA, b.start]);
+              pila.push(new FragmentoAFN(a.start, b.accept, trans));
+            }
+
           } else if (token === "*") {
             if (pila.length < 1) throw new Error("Error en estrella '*'");
             let a = pila.pop();
-            let sIni = this.nuevoEstado();
-            let sFin = this.nuevoEstado();
-            let trans = [...a.transitions];
-            trans.push([sIni, LAMBDA, sFin]);
-            trans.push([sIni, LAMBDA, a.start]);
-            trans.push([a.accept, LAMBDA, a.start]);
-            trans.push([a.accept, LAMBDA, sFin]);
-            pila.push(new FragmentoAFN(sIni, sFin, trans));
+            let trans = a.transitions.map(t => [...t]);
+            let aStartIn = a.transitions.some(t => t[2] === a.start);
+
+            if (!aStartIn) {
+              trans.push([a.accept, LAMBDA, a.start]);
+              pila.push(new FragmentoAFN(a.start, a.start, trans));
+            } else {
+              let sIni = this.nuevoEstado();
+              trans.push([sIni, LAMBDA, a.start]);
+              trans.push([a.accept, LAMBDA, a.start]);
+              pila.push(new FragmentoAFN(sIni, sIni, trans));
+            }
+
           } else if (token === "+") {
             if (pila.length < 1) throw new Error("Error en '+'");
             let a = pila.pop();
-            let sIni = this.nuevoEstado();
-            let sFin = this.nuevoEstado();
-            let trans = [...a.transitions];
-            trans.push([sIni, LAMBDA, a.start]);
+            let trans = a.transitions.map(t => [...t]);
             trans.push([a.accept, LAMBDA, a.start]);
-            trans.push([a.accept, LAMBDA, sFin]);
-            pila.push(new FragmentoAFN(sIni, sFin, trans));
+            pila.push(new FragmentoAFN(a.start, a.accept, trans));
+
           } else {
             let sIni = this.nuevoEstado();
             let sFin = this.nuevoEstado();
@@ -760,6 +800,14 @@
 
         if (pila.length !== 1) throw new Error("Expresión regular mal formada");
         let frag = pila.pop();
+
+        // Regla obligatoria: Garantizar que la cantidad de transiciones λ >= 1
+        let numLambdas = frag.transitions.filter(t => t[1] === LAMBDA).length;
+        if (numLambdas === 0) {
+          let nuevoFin = this.nuevoEstado();
+          frag.transitions.push([frag.accept, LAMBDA, nuevoFin]);
+          frag.accept = nuevoFin;
+        }
 
         return this.renombrarCanonicamente(frag, Array.from(alfabeto).sort(), erTexto);
       }

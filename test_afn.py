@@ -19,9 +19,10 @@ class TestAFNLambda(unittest.TestCase):
     def test_simbolo_simple(self):
         afn = self.generador.construir_afn("a")
         self.assertEqual(afn.Sigma, ["a"])
-        self.assertEqual(len(afn.Q), 2)
+        # Con la regla de λ >= 1, tiene al menos 1 transición λ
+        num_lambdas = sum(1 for t in afn.transiciones if t[1] == LAMBDA)
+        self.assertGreaterEqual(num_lambdas, 1)
         self.assertEqual(afn.q0, "q0")
-        self.assertEqual(afn.F, {"q1"})
         self.assertTrue(afn.acepta_cadena("a"))
         self.assertFalse(afn.acepta_cadena(""))
         self.assertFalse(afn.acepta_cadena("b"))

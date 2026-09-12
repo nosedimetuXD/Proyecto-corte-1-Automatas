@@ -355,9 +355,11 @@ class GeneradorAFN:
 
         return salida
 
-    def construir_afn(self, er_texto: str) -> AFNLambda:
+    def construir_afn(self, er_texto: str, simplificado: bool = True) -> AFNLambda:
         """
         Construye el AFN-λ a partir del texto de la expresión regular.
+        Si simplificado=True, reduce las transiciones λ al mínimo posible
+        garantizando que la cantidad de transiciones λ sea >= 1.
         """
         if not er_texto or er_texto.strip() == "":
             raise ValueError("La expresión regular no puede estar vacía.")
@@ -372,70 +374,115 @@ class GeneradorAFN:
 
         for token in postfijo:
             if token == "|":
-                # Unión: R U S (paralelo)
                 if len(pila) < 2:
                     raise ValueError("Error de sintaxis: faltan operandos para la unión '|'.")
                 b = pila.pop()
                 a = pila.pop()
 
-                nuevo_inicio = self._nuevo_estado()
-                nuevo_fin = self._nuevo_estado()
+                if simplificado:
+                    # Fusión inteligente de extremos para minimizar lambdas
+                    a_start_in = any(t[2] == a.start for t in a.transitions)
+                    b_start_in = any(t[2] == b.start for t in b.transitions)
+                    trans = [list(t) for t in a.transitions + b.transitions]
 
-                trans = a.transitions + b.transitions
-                trans.append((nuevo_inicio, LAMBDA, a.start))
-                trans.append((nuevo_inicio, LAMBDA, b.start))
-                trans.append((a.accept, LAMBDA, nuevo_fin))
-                trans.append((b.accept, LAMBDA, nuevo_fin))
+                    if not a_start_in and not b_start_in:
+                        s_ini = self._nuevo_estado()
+                        for t in trans:
+                            if t[0] == a.start: t[0] = s_ini
+                            if t[0] == b.start: t[0] = s_ini
+                    else:
+                        s_ini = self._nuevo_estado()
+                        trans.append([s_ini, LAMBDA, a.start])
+                        trans.append([s_ini, LAMBDA, b.start])
 
-                pila.append(_FragmentoAFN(nuevo_inicio, nuevo_fin, trans))
+                    a_acc_out = any(t[0] == a.accept for t in a.transitions)
+                    b_acc_out = any(t[0] == b.accept for t in b.transitions)
+
+                    if not a_acc_out and not b_acc_out:
+                        s_fin = self._nuevo_estado()
+                        for t in trans:
+                            if t[2] == a.accept: t[2] = s_fin
+                            if t[2] == b.accept: t[2] = s_fin
+                    else:
+                        s_fin = self._nuevo_estado()
+                        trans.append([a.accept, LAMBDA, s_fin])
+                        trans.append([b.accept, LAMBDA, s_fin])
+
+                    pila.append(_FragmentoAFN(s_ini, s_fin, [tuple(t) for t in trans]))
+                else:
+                    nuevo_inicio = self._nuevo_estado()
+                    nuevo_fin = self._nuevo_estado()
+                    trans = a.transitions + b.transitions
+                    trans.append((nuevo_inicio, LAMBDA, a.start))
+                    trans.append((nuevo_inicio, LAMBDA, b.start))
+                    trans.append((a.accept, LAMBDA, nuevo_fin))
+                    trans.append((b.accept, LAMBDA, nuevo_fin))
+                    pila.append(_FragmentoAFN(nuevo_inicio, nuevo_fin, trans))
 
             elif token == "·":
-                # Concatenación: R · S (serie)
                 if len(pila) < 2:
                     raise ValueError("Error de sintaxis: faltan operandos para la concatenación.")
                 b = pila.pop()
                 a = pila.pop()
 
-                trans = a.transitions + b.transitions
-                trans.append((a.accept, LAMBDA, b.start))
-
-                pila.append(_FragmentoAFN(a.start, b.accept, trans))
+                if simplificado and a.start != a.accept and b.start != b.accept:
+                    # Fusionar a.accept con b.start directamente sin crear λ
+                    trans = [list(t) for t in a.transitions + b.transitions]
+                    for t in trans:
+                        if t[0] == b.start: t[0] = a.accept
+                        if t[2] == b.start: t[2] = a.accept
+                    pila.append(_FragmentoAFN(a.start, b.accept, [tuple(t) for t in trans]))
+                else:
+                    trans = a.transitions + b.transitions
+                    trans.append((a.accept, LAMBDA, b.start))
+                    pila.append(_FragmentoAFN(a.start, b.accept, trans))
 
             elif token == "*":
-                # Estrella de Kleene: R*
                 if len(pila) < 1:
                     raise ValueError("Error de sintaxis: falta operando para la estrella '*'.")
                 a = pila.pop()
 
-                nuevo_inicio = self._nuevo_estado()
-                nuevo_fin = self._nuevo_estado()
+                if simplificado:
+                    trans = [list(t) for t in a.transitions]
+                    a_start_in = any(t[2] == a.start for t in a.transitions)
 
-                trans = list(a.transitions)
-                trans.append((nuevo_inicio, LAMBDA, nuevo_fin))
-                trans.append((nuevo_inicio, LAMBDA, a.start))
-                trans.append((a.accept, LAMBDA, a.start))
-                trans.append((a.accept, LAMBDA, nuevo_fin))
-
-                pila.append(_FragmentoAFN(nuevo_inicio, nuevo_fin, trans))
+                    if not a_start_in:
+                        # a.start se vuelve inicio y final, con retorno λ
+                        trans.append([a.accept, LAMBDA, a.start])
+                        pila.append(_FragmentoAFN(a.start, a.start, [tuple(t) for t in trans]))
+                    else:
+                        s_ini = self._nuevo_estado()
+                        trans.append([s_ini, LAMBDA, a.start])
+                        trans.append([a.accept, LAMBDA, a.start])
+                        pila.append(_FragmentoAFN(s_ini, s_ini, [tuple(t) for t in trans]))
+                else:
+                    nuevo_inicio = self._nuevo_estado()
+                    nuevo_fin = self._nuevo_estado()
+                    trans = list(a.transitions)
+                    trans.append((nuevo_inicio, LAMBDA, nuevo_fin))
+                    trans.append((nuevo_inicio, LAMBDA, a.start))
+                    trans.append((a.accept, LAMBDA, a.start))
+                    trans.append((a.accept, LAMBDA, nuevo_fin))
+                    pila.append(_FragmentoAFN(nuevo_inicio, nuevo_fin, trans))
 
             elif token == "+":
-                # Clausura positiva: R+
                 if len(pila) < 1:
                     raise ValueError("Error de sintaxis: falta operando para el '+'.")
                 a = pila.pop()
-
-                nuevo_inicio = self._nuevo_estado()
-                nuevo_fin = self._nuevo_estado()
-
-                trans = list(a.transitions)
-                trans.append((nuevo_inicio, LAMBDA, a.start))
-                trans.append((a.accept, LAMBDA, a.start))
-                trans.append((a.accept, LAMBDA, nuevo_fin))
-
-                pila.append(_FragmentoAFN(nuevo_inicio, nuevo_fin, trans))
+                if simplificado:
+                    trans = list(a.transitions)
+                    trans.append((a.accept, LAMBDA, a.start))
+                    pila.append(_FragmentoAFN(a.start, a.accept, trans))
+                else:
+                    nuevo_inicio = self._nuevo_estado()
+                    nuevo_fin = self._nuevo_estado()
+                    trans = list(a.transitions)
+                    trans.append((nuevo_inicio, LAMBDA, a.start))
+                    trans.append((a.accept, LAMBDA, a.start))
+                    trans.append((a.accept, LAMBDA, nuevo_fin))
+                    pila.append(_FragmentoAFN(nuevo_inicio, nuevo_fin, trans))
 
             else:
-                # Símbolo básico: a ∈ Σ o λ
                 s_ini = self._nuevo_estado()
                 s_fin = self._nuevo_estado()
                 simbolo = token
@@ -448,6 +495,14 @@ class GeneradorAFN:
             raise ValueError("Expresión regular mal formada.")
 
         fragmento_final = pila.pop()
+
+        # REGLA OBLIGATORIA: Cantidad de transiciones λ >= 1
+        num_lambdas = sum(1 for t in fragmento_final.transitions if t[1] == LAMBDA)
+        if num_lambdas == 0:
+            # Si no hay ninguna λ, añadimos exactamente 1 al final
+            nuevo_fin = self._nuevo_estado()
+            fragmento_final.transitions.append((fragmento_final.accept, LAMBDA, nuevo_fin))
+            fragmento_final.accept = nuevo_fin
 
         return self._renombrar_canonicamente(
             fragmento_final, sorted(alfabeto_detectado), er_texto
