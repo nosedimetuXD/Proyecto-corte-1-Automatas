@@ -4,8 +4,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Generador de AFN-λ</title>
-  <meta name="description" content="Generador y simulador interactivo de Autómatas Finitos No Deterministas con Transiciones Lambda (AFN-λ) a partir de Expresiones Regulares.">
+  <title>Generador de AFN-λ | Rodrigo De Castro Korgi</title>
+  <meta name="description" content="Generador y simulador interactivo de Autómatas Finitos No Deterministas con Transiciones Lambda (AFN-λ) con transiciones mínimas a partir de Expresiones Regulares.">
+  <meta property="og:title" content="Generador de AFN-λ">
+  <meta property="og:description" content="Generador y simulador interactivo de Autómatas Finitos No Deterministas con Transiciones Lambda (AFN-λ) a partir de Expresiones Regulares.">
   <link rel="icon" type="image/png" href="lambda_logo.png">
 
   <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
@@ -14,33 +16,104 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
+    /* ==========================================================================
+       1. DESIGN TOKENS (ARQUITECTURA EN 3 CAPAS: PRIMITIVOS, SEMÁNTICOS, COMPONENTE)
+       ========================================================================== */
     :root {
-      --bg: #f8fafc;
+      /* Primitivos: Colores base */
+      --color-slate-50: #f8fafc;
+      --color-slate-100: #f1f5f9;
+      --color-slate-200: #e2e8f0;
+      --color-slate-300: #cbd5e1;
+      --color-slate-400: #94a3b8;
+      --color-slate-500: #64748b;
+      --color-slate-600: #475569;
+      --color-slate-700: #334155;
+      --color-slate-800: #1e293b;
+      --color-slate-900: #0f172a;
+
+      --color-blue-50: #eff6ff;
+      --color-blue-100: #dbeafe;
+      --color-blue-200: #bfdbfe;
+      --color-blue-500: #3b82f6;
+      --color-blue-600: #2563eb;
+      --color-blue-700: #1d4ed8;
+
+      --color-emerald-50: #ecfdf5;
+      --color-emerald-100: #d1fae5;
+      --color-emerald-200: #a7f3d0;
+      --color-emerald-600: #059669;
+      --color-emerald-700: #047857;
+      --color-emerald-900: #064e3b;
+
+      --color-red-50: #fef2f2;
+      --color-red-100: #fee2e2;
+      --color-red-200: #fecaca;
+      --color-red-600: #dc2626;
+      --color-red-700: #b91c1c;
+
+      --color-amber-50: #fffbeb;
+      --color-amber-100: #fef3c7;
+      --color-amber-200: #fde68a;
+      --color-amber-600: #d97706;
+      --color-amber-700: #b45309;
+
+      /* Semánticos: Superficies y textos (WCAG 2.1 AAA/AA compliant) */
+      --bg: var(--color-slate-50);
       --card-bg: #ffffff;
-      --text-main: #0f172a;
-      --text-muted: #475569;
-      --text-subtle: #94a3b8;
-      --border: #e2e8f0;
-      --border-focus: #3b82f6;
-      --primary: #2563eb;
-      --primary-hover: #1d4ed8;
-      --primary-subtle: #eff6ff;
-      --primary-border: #bfdbfe;
-      --success: #059669;
-      --success-subtle: #ecfdf5;
-      --success-border: #a7f3d0;
-      --danger: #dc2626;
-      --danger-subtle: #fef2f2;
-      --danger-border: #fecaca;
-      --amber: #d97706;
-      --amber-subtle: #fffbeb;
-      --amber-border: #fde68a;
+      --text-main: var(--color-slate-900);
+      --text-muted: var(--color-slate-600);    /* Ratio > 6.4:1 sobre blanco */
+      --text-subtle: var(--color-slate-500);   /* Ratio > 4.6:1 sobre blanco */
+      --border: var(--color-slate-200);
+      --border-focus: var(--color-blue-500);
+
+      --primary: var(--color-blue-600);
+      --primary-hover: var(--color-blue-700);
+      --primary-subtle: var(--color-blue-50);
+      --primary-border: var(--color-blue-200);
+
+      --success: var(--color-emerald-600);
+      --success-hover: var(--color-emerald-700);
+      --success-subtle: var(--color-emerald-50);
+      --success-border: var(--color-emerald-200);
+      --success-text: var(--color-emerald-900);
+
+      --danger: var(--color-red-600);
+      --danger-subtle: var(--color-red-50);
+      --danger-border: var(--color-red-200);
+
+      --amber: var(--color-amber-600);
+      --amber-subtle: var(--color-amber-50);
+      --amber-border: var(--color-amber-200);
+
+      /* Escala estricta de 4/8px para espaciado y radios */
       --radius-sm: 6px;
       --radius-md: 10px;
       --radius-lg: 14px;
-      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
-      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.04);
+      --radius-full: 9999px;
+
+      /* Sombras estratificadas modernas */
+      --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+      --shadow-lg: 0 12px 24px -4px rgba(15, 23, 42, 0.08), 0 4px 8px -2px rgba(15, 23, 42, 0.03);
+
+      /* Anillos de accesibilidad (Focus ring) */
+      --ring-focus: 0 0 0 2px #ffffff, 0 0 0 4px var(--primary);
+
+      /* Microinteracciones físicas (Emil Kowalski) */
+      --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+      --duration-instant: 120ms;
+      --duration-normal: 180ms;
+    }
+
+    /* Respeto estricto a la accesibilidad vestibular (WCAG 2.2 / reduced-motion) */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
     }
 
     * {
@@ -59,6 +132,19 @@
       -webkit-font-smoothing: antialiased;
     }
 
+    /* Utilidad para accesibilidad (lectores de pantalla) */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
     .container {
       max-width: 1240px;
       margin: 0 auto;
@@ -66,7 +152,7 @@
 
     /* HEADER */
     header {
-      margin-bottom: 28px;
+      margin-bottom: 24px;
     }
 
     .header-card {
@@ -96,7 +182,7 @@
       background: #ffffff;
       border: 1px solid var(--border);
       padding: 6px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      box-shadow: var(--shadow-sm);
       flex-shrink: 0;
     }
 
@@ -129,9 +215,9 @@
       background: var(--primary-subtle);
       color: var(--primary);
       border: 1px solid var(--primary-border);
-      padding: 6px 12px;
-      border-radius: 9999px;
-      font-size: 0.8rem;
+      padding: 6px 14px;
+      border-radius: var(--radius-full);
+      font-size: 0.82rem;
       font-weight: 600;
       letter-spacing: 0.01em;
     }
@@ -140,12 +226,12 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: #f1f5f9;
+      background: var(--color-slate-100);
       color: var(--text-muted);
       border: 1px solid var(--border);
-      padding: 6px 12px;
-      border-radius: 9999px;
-      font-size: 0.8rem;
+      padding: 6px 14px;
+      border-radius: var(--radius-full);
+      font-size: 0.82rem;
       font-weight: 600;
     }
 
@@ -180,6 +266,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      cursor: pointer;
     }
 
     .input-row {
@@ -198,6 +285,7 @@
     .input-wrapper input {
       width: 100%;
       padding: 14px 18px;
+      padding-right: 90px;
       font-size: 1.15rem;
       font-family: "JetBrains Mono", monospace;
       font-weight: 600;
@@ -206,29 +294,59 @@
       border: 2px solid var(--border);
       border-radius: var(--radius-md);
       outline: none;
-      transition: all 0.2s ease;
+      transition: border-color var(--duration-instant) ease, box-shadow var(--duration-instant) ease;
       box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
     }
 
-    .input-wrapper input:focus {
+    .input-wrapper input:focus-visible {
       border-color: var(--border-focus);
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
     }
 
+    /* Atajo visual de teclado */
+    .kbd-hint {
+      position: absolute;
+      right: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      background: var(--color-slate-100);
+      border: 1px solid var(--border);
+      color: var(--text-subtle);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 3px 7px;
+      border-radius: var(--radius-sm);
+      pointer-events: none;
+      user-select: none;
+    }
+
+    /* BOTONES */
     .btn {
       padding: 12px 24px;
+      min-height: 44px;
       font-size: 0.95rem;
       font-weight: 600;
       border: none;
       border-radius: var(--radius-md);
       cursor: pointer;
-      transition: all 0.18s ease;
+      transition: transform var(--duration-instant) var(--ease-spring), background-color var(--duration-instant) ease, box-shadow var(--duration-instant) ease;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
       white-space: nowrap;
       user-select: none;
+    }
+
+    .btn:focus-visible {
+      outline: none;
+      box-shadow: var(--ring-focus);
+    }
+
+    .btn:active {
+      transform: scale(0.98);
     }
 
     .btn-primary {
@@ -244,18 +362,22 @@
     }
 
     .btn-primary:active {
-      transform: translateY(0);
+      transform: translateY(0) scale(0.98);
     }
 
     .btn-secondary {
-      background: #f1f5f9;
+      background: var(--color-slate-100);
       color: var(--text-main);
       border: 1px solid var(--border);
     }
 
     .btn-secondary:hover {
-      background: #e2e8f0;
+      background: var(--color-slate-200);
       color: var(--primary);
+    }
+
+    .btn-secondary:active {
+      transform: scale(0.98);
     }
 
     /* QUICK INSERT KEYS */
@@ -283,18 +405,21 @@
     }
 
     .key-btn {
-      background: #f8fafc;
+      background: var(--color-slate-50);
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
+      min-height: 36px;
+      min-width: 36px;
       padding: 6px 12px;
       font-family: "JetBrains Mono", monospace;
       font-size: 0.92rem;
       font-weight: 700;
       cursor: pointer;
       color: var(--text-main);
-      transition: all 0.15s ease;
+      transition: transform var(--duration-instant) var(--ease-spring), background-color var(--duration-instant) ease, border-color var(--duration-instant) ease;
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 4px;
     }
 
@@ -305,8 +430,13 @@
       transform: translateY(-1px);
     }
 
+    .key-btn:focus-visible {
+      outline: none;
+      box-shadow: var(--ring-focus);
+    }
+
     .key-btn:active {
-      transform: translateY(0);
+      transform: scale(0.96);
     }
 
     .examples-select {
@@ -323,6 +453,7 @@
 
     .select-custom {
       padding: 8px 14px;
+      min-height: 38px;
       border-radius: var(--radius-sm);
       border: 1px solid var(--border);
       background: #ffffff;
@@ -332,11 +463,12 @@
       color: var(--text-main);
       outline: none;
       cursor: pointer;
-      transition: border-color 0.2s;
+      transition: border-color var(--duration-instant) ease, box-shadow var(--duration-instant) ease;
     }
 
-    .select-custom:focus {
+    .select-custom:focus-visible {
       border-color: var(--border-focus);
+      box-shadow: var(--ring-focus);
     }
 
     #regex-error {
@@ -351,7 +483,7 @@
       line-height: 1.5;
     }
 
-    /* TABS */
+    /* PESTAÑAS (TABS) */
     .tabs-wrapper {
       margin-bottom: 24px;
     }
@@ -370,6 +502,7 @@
 
     .tab-btn {
       padding: 12px 20px;
+      min-height: 44px;
       background: none;
       border: none;
       font-family: inherit;
@@ -379,15 +512,25 @@
       cursor: pointer;
       border-bottom: 2px solid transparent;
       margin-bottom: -2px;
-      transition: all 0.2s ease;
+      transition: color var(--duration-instant) ease, border-color var(--duration-instant) ease;
       white-space: nowrap;
       display: inline-flex;
       align-items: center;
       gap: 8px;
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
     }
 
     .tab-btn:hover {
       color: var(--primary);
+    }
+
+    .tab-btn:focus-visible {
+      outline: none;
+      box-shadow: var(--ring-focus);
+    }
+
+    .tab-btn:active {
+      transform: scale(0.98);
     }
 
     .tab-btn.active {
@@ -397,12 +540,12 @@
     }
 
     .tab-badge {
-      background: #f1f5f9;
+      background: var(--color-slate-100);
       color: var(--text-muted);
       font-size: 0.75rem;
       font-weight: 700;
       padding: 2px 7px;
-      border-radius: 9999px;
+      border-radius: var(--radius-full);
       border: 1px solid var(--border);
     }
 
@@ -418,6 +561,18 @@
 
     .tab-content.active {
       display: block;
+      animation: tabFadeIn var(--duration-normal) var(--ease-spring);
+    }
+
+    @keyframes tabFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(4px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     /* GRAPH CONTAINER & CANVAS */
@@ -428,7 +583,7 @@
       border: 1px solid var(--border);
       border-radius: var(--radius-md);
       background-color: #ffffff;
-      background-image: radial-gradient(#e2e8f0 1.2px, transparent 1.2px);
+      background-image: radial-gradient(var(--color-slate-300) 1.2px, transparent 1.2px);
       background-size: 24px 24px;
       overflow: hidden;
       box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.02);
@@ -451,7 +606,7 @@
       right: 14px;
       display: flex;
       gap: 6px;
-      background: rgba(255, 255, 255, 0.92);
+      background: rgba(255, 255, 255, 0.94);
       backdrop-filter: blur(8px);
       padding: 6px;
       border-radius: var(--radius-md);
@@ -460,8 +615,8 @@
     }
 
     .ctrl-btn {
-      width: 34px;
-      height: 34px;
+      min-width: 36px;
+      height: 36px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -472,7 +627,7 @@
       font-weight: 700;
       color: var(--text-main);
       cursor: pointer;
-      transition: all 0.15s ease;
+      transition: transform var(--duration-instant) var(--ease-spring), background-color var(--duration-instant) ease;
     }
 
     .ctrl-btn:hover {
@@ -481,9 +636,18 @@
       color: var(--primary);
     }
 
+    .ctrl-btn:focus-visible {
+      outline: none;
+      box-shadow: var(--ring-focus);
+    }
+
+    .ctrl-btn:active {
+      transform: scale(0.96);
+    }
+
     .ctrl-btn-text {
       width: auto;
-      padding: 0 10px;
+      padding: 0 12px;
       font-size: 0.82rem;
       font-family: inherit;
     }
@@ -496,8 +660,8 @@
       gap: 16px;
       flex-wrap: wrap;
       margin-top: 14px;
-      padding: 10px 16px;
-      background: #f8fafc;
+      padding: 12px 16px;
+      background: var(--color-slate-50);
       border: 1px solid var(--border);
       border-radius: var(--radius-md);
       font-size: 0.85rem;
@@ -534,6 +698,7 @@
     .legend-hint {
       color: var(--text-subtle);
       font-size: 0.82rem;
+      font-weight: 500;
       display: flex;
       align-items: center;
       gap: 6px;
@@ -571,27 +736,41 @@
       display: flex;
       gap: 6px;
       align-items: center;
+      flex-wrap: wrap;
       font-size: 0.82rem;
       color: var(--text-muted);
     }
 
     .sim-chip {
-      background: #f1f5f9;
+      background: var(--color-slate-100);
       border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+      min-height: 28px;
+      padding: 3px 10px;
       font-family: "JetBrains Mono", monospace;
-      font-size: 0.8rem;
+      font-size: 0.82rem;
       font-weight: 600;
       color: var(--text-main);
       cursor: pointer;
-      transition: all 0.15s;
+      transition: transform var(--duration-instant) var(--ease-spring), background-color var(--duration-instant) ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .sim-chip:hover {
       background: var(--primary-subtle);
       border-color: var(--primary-border);
       color: var(--primary);
+    }
+
+    .sim-chip:focus-visible {
+      outline: none;
+      box-shadow: var(--ring-focus);
+    }
+
+    .sim-chip:active {
+      transform: scale(0.96);
     }
 
     .sim-input-row {
@@ -609,11 +788,12 @@
       border: 1.5px solid var(--border);
       border-radius: var(--radius-sm);
       outline: none;
-      transition: border-color 0.2s;
+      transition: border-color var(--duration-instant) ease, box-shadow var(--duration-instant) ease;
     }
 
-    .sim-input-row input:focus {
+    .sim-input-row input:focus-visible {
       border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
     }
 
     .sim-result {
@@ -621,12 +801,13 @@
       padding: 16px;
       border-radius: var(--radius-md);
       display: none;
+      animation: tabFadeIn var(--duration-normal) var(--ease-spring);
     }
 
     .sim-result.accepted {
       display: block;
       background: var(--success-subtle);
-      color: #065f46;
+      color: var(--success-text);
       border: 1px solid var(--success-border);
     }
 
@@ -647,16 +828,25 @@
       display: flex;
       align-items: baseline;
       gap: 10px;
-      padding: 6px 8px;
+      padding: 8px 10px;
       border-radius: var(--radius-sm);
       margin-bottom: 4px;
       font-size: 0.9rem;
       cursor: pointer;
-      transition: background 0.15s;
+      transition: background var(--duration-instant) ease, transform var(--duration-instant) var(--ease-spring);
     }
 
     .trace-item:hover {
       background: rgba(0, 0, 0, 0.04);
+    }
+
+    .trace-item:focus-visible {
+      outline: none;
+      box-shadow: var(--ring-focus);
+    }
+
+    .trace-item:active {
+      transform: scale(0.99);
     }
 
     .trace-step-badge {
@@ -673,10 +863,10 @@
       font-family: "JetBrains Mono", monospace;
       font-weight: 700;
       color: var(--text-main);
-      background: rgba(255, 255, 255, 0.85);
+      background: rgba(255, 255, 255, 0.9);
       padding: 2px 8px;
       border-radius: 4px;
-      border: 1px solid rgba(0, 0, 0, 0.06);
+      border: 1px solid rgba(0, 0, 0, 0.08);
     }
 
     /* TRANSITION MATRIX */
@@ -702,7 +892,7 @@
     }
 
     table.matrix-table th {
-      background-color: #f8fafc;
+      background-color: var(--color-slate-50);
       color: var(--text-muted);
       font-weight: 700;
       font-family: "JetBrains Mono", monospace;
@@ -717,7 +907,7 @@
     }
 
     table.matrix-table tr:hover {
-      background-color: #f8fafc;
+      background-color: var(--color-slate-50);
     }
 
     /* Sticky first column for states */
@@ -725,7 +915,7 @@
     table.matrix-table td:first-child {
       position: sticky;
       left: 0;
-      background-color: #f8fafc;
+      background-color: var(--color-slate-50);
       z-index: 2;
       box-shadow: 2px 0 4px -2px rgba(0, 0, 0, 0.08);
       text-align: left;
@@ -741,7 +931,7 @@
     }
 
     .dest-empty {
-      color: #94a3b8;
+      color: var(--text-subtle);
       font-family: "JetBrains Mono", monospace;
       font-style: italic;
     }
@@ -749,9 +939,9 @@
     .dest-set {
       font-family: "JetBrains Mono", monospace;
       font-weight: 600;
-      color: #0f172a;
-      background-color: #f1f5f9;
-      border: 1px solid #e2e8f0;
+      color: var(--text-main);
+      background-color: var(--color-slate-100);
+      border: 1px solid var(--border);
       border-radius: 4px;
       padding: 3px 8px;
       display: inline-block;
@@ -766,7 +956,7 @@
     }
 
     .tuple-card {
-      background: #f8fafc;
+      background: var(--color-slate-50);
       border: 1px solid var(--border);
       border-radius: var(--radius-md);
       padding: 16px;
@@ -816,7 +1006,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      transition: all 0.15s;
+      transition: border-color var(--duration-instant) ease, background-color var(--duration-instant) ease;
     }
 
     .delta-item:hover {
@@ -859,6 +1049,21 @@
         flex-direction: column;
         align-items: flex-start;
       }
+      .quick-keys {
+        width: 100%;
+      }
+      .key-btn {
+        flex: 1;
+        min-height: 40px;
+      }
+      .examples-select {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .select-custom {
+        width: 100%;
+      }
     }
   </style>
 </head>
@@ -871,7 +1076,7 @@
     <header>
       <div class="header-card" id="header-banner">
         <div class="header-brand">
-          <img src="lambda_logo.png" alt="Logo AFN Lambda" class="header-logo" id="header-logo-img">
+          <img src="lambda_logo.png" alt="Logotipo AFN Lambda" class="header-logo" id="header-logo-img" width="64" height="64">
           <div class="header-titles">
             <h1>Generador de AFN-λ</h1>
             <p>Construcción inductiva a partir de Expresiones Regulares con transiciones λ mínimas</p>
@@ -879,8 +1084,8 @@
         </div>
 
         <div class="header-badges">
-          <div class="badge-book" id="book-badge">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <div class="badge-book" id="book-badge" aria-label="Referencia bibliográfica: Rodrigo De Castro Korgi, Capítulo 2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
               <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
             </svg>
@@ -894,17 +1099,18 @@
 
     <!-- PANEL DE ENTRADA -->
     <div class="card input-section" id="input-card">
-      <div class="section-label">
+      <label for="regex-input" class="section-label">
         <span>Expresión Regular de Entrada</span>
         <span style="font-weight: 500; font-size: 0.8rem; text-transform: none; color: var(--text-muted);">Soporta unión |, *, +, concatenación implícita y λ</span>
-      </div>
+      </label>
 
       <div class="input-row">
         <div class="input-wrapper">
-          <input type="text" id="regex-input" value="a*(ab|ba)*" placeholder="Escribe tu expresión regular (ej. (a|b)*b)" autocomplete="off">
+          <input type="text" id="regex-input" value="a*(ab|ba)*" placeholder="Escribe tu expresión regular (ej. (a|b)*b)" autocomplete="off" spellcheck="false" aria-describedby="quick-keys-toolbar">
+          <span class="kbd-hint" aria-hidden="true">Enter ↵</span>
         </div>
-        <button class="btn btn-primary" id="btn-generate">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <button class="btn btn-primary" id="btn-generate" aria-label="Generar representaciones del autómata finito">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
             <polygon points="5 3 19 12 5 21 5 3"></polygon>
           </svg>
           Generar Autómata
@@ -912,19 +1118,19 @@
       </div>
 
       <div class="toolbar-row">
-        <div class="quick-keys" id="quick-keys-toolbar">
+        <div class="quick-keys" id="quick-keys-toolbar" role="group" aria-label="Símbolos rápidos para inserción en la expresión regular">
           <span class="quick-keys-label">Símbolos rápidos:</span>
-          <button class="key-btn" data-val="λ" title="Transición nula (cadena vacía)">λ</button>
-          <button class="key-btn" data-val="|" title="Unión (| o U)">∪ (|)</button>
-          <button class="key-btn" data-val="*" title="Estrella de Kleene">*</button>
-          <button class="key-btn" data-val="+" title="Clausura positiva">+</button>
-          <button class="key-btn" data-val="(">(</button>
-          <button class="key-btn" data-val=")">)</button>
+          <button class="key-btn" data-val="λ" title="Transición nula (cadena vacía)" aria-label="Insertar símbolo lambda (transición nula)">λ</button>
+          <button class="key-btn" data-val="|" title="Unión (| o U)" aria-label="Insertar operador de unión">∪ (|)</button>
+          <button class="key-btn" data-val="*" title="Estrella de Kleene" aria-label="Insertar clausura o estrella de Kleene">*</button>
+          <button class="key-btn" data-val="+" title="Clausura positiva" aria-label="Insertar clausura positiva">+</button>
+          <button class="key-btn" data-val="(" aria-label="Abrir paréntesis">(</button>
+          <button class="key-btn" data-val=")" aria-label="Cerrar paréntesis">)</button>
         </div>
 
         <div class="examples-select">
           <label for="examples-dropdown">Ejemplos del libro:</label>
-          <select id="examples-dropdown" class="select-custom">
+          <select id="examples-dropdown" class="select-custom" aria-label="Seleccionar ejemplo preconfigurado del texto">
             <option value="a*(ab|ba)*">a*(ab|ba)* (Sección 2.9)</option>
             <option value="(a|b)*b">(a|b)*b (Terminan en 'b', Sec. 2.4)</option>
             <option value="(0|1)*00(0|1)*">(0|1)*00(0|1)* (Contienen '00')</option>
@@ -936,14 +1142,14 @@
       </div>
 
       <!-- BANNER DE ERROR INLINE -->
-      <div id="regex-error" role="alert"></div>
+      <div id="regex-error" role="alert" aria-live="assertive"></div>
     </div>
 
     <!-- PESTAÑAS DE VISUALIZACIÓN (ÚNICAMENTE LAS 3 FORMAS SOLICITADAS) -->
     <div class="tabs-wrapper">
-      <div class="tabs" role="tablist">
-        <button class="tab-btn active" data-tab="tab-graph" id="tab-btn-graph" role="tab" aria-selected="true">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <div class="tabs" role="tablist" aria-label="Vistas de representación del autómata">
+        <button class="tab-btn active" data-tab="tab-graph" id="tab-btn-graph" role="tab" aria-selected="true" aria-controls="tab-graph">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <circle cx="18" cy="5" r="3"></circle>
             <circle cx="6" cy="12" r="3"></circle>
             <circle cx="18" cy="19" r="3"></circle>
@@ -954,8 +1160,8 @@
           <span class="tab-badge" id="badge-tab-graph">Visual</span>
         </button>
 
-        <button class="tab-btn" data-tab="tab-matrix" id="tab-btn-matrix" role="tab" aria-selected="false">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <button class="tab-btn" data-tab="tab-matrix" id="tab-btn-matrix" role="tab" aria-selected="false" aria-controls="tab-matrix">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
             <line x1="3" y1="9" x2="21" y2="9"></line>
             <line x1="3" y1="15" x2="21" y2="15"></line>
@@ -966,8 +1172,8 @@
           <span class="tab-badge" id="badge-tab-matrix">Tabla</span>
         </button>
 
-        <button class="tab-btn" data-tab="tab-delta" id="tab-btn-delta" role="tab" aria-selected="false">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <button class="tab-btn" data-tab="tab-delta" id="tab-btn-delta" role="tab" aria-selected="false" aria-controls="tab-delta">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
             <polyline points="14 2 14 8 20 8"></polyline>
             <line x1="16" y1="13" x2="8" y2="13"></line>
@@ -981,17 +1187,20 @@
     </div>
 
     <!-- TAB 1: GRAFO INTERACTIVO -->
-    <div id="tab-graph" class="tab-content active" role="tabpanel">
+    <div id="tab-graph" class="tab-content active" role="tabpanel" aria-labelledby="tab-btn-graph">
+      <h2 class="sr-only">1. Visualización del Grafo Interactivo y Simulación</h2>
       <div class="card" style="padding: 16px;">
         <div id="graph-container">
-          <canvas id="graph-canvas"></canvas>
+          <canvas id="graph-canvas" role="img" aria-label="Diagrama interactivo del Grafo de Estados del AFN-Lambda. Permite arrastrar estados y hacer zoom.">
+            El navegador no soporta Canvas HTML5. Consulte las pestañas de Matriz o Función Formal para ver los datos del autómata.
+          </canvas>
 
-          <div class="graph-controls" id="graph-controls-toolbar">
-            <button class="ctrl-btn" id="btn-zoom-in" title="Acercar (+)">+</button>
-            <button class="ctrl-btn" id="btn-zoom-out" title="Alejar (-)">−</button>
-            <button class="ctrl-btn ctrl-btn-text" id="btn-reset-zoom" title="Restablecer posición inicial">Centrar</button>
-            <button class="ctrl-btn ctrl-btn-text" id="btn-export-png" title="Descargar grafo en imagen PNG">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;">
+          <div class="graph-controls" id="graph-controls-toolbar" role="toolbar" aria-label="Controles de navegación del grafo">
+            <button class="ctrl-btn" id="btn-zoom-in" title="Acercar (+)" aria-label="Acercar vista">+</button>
+            <button class="ctrl-btn" id="btn-zoom-out" title="Alejar (-)" aria-label="Alejar vista">−</button>
+            <button class="ctrl-btn ctrl-btn-text" id="btn-reset-zoom" title="Restablecer posición inicial" aria-label="Restablecer posición y zoom inicial">Centrar</button>
+            <button class="ctrl-btn ctrl-btn-text" id="btn-export-png" title="Descargar grafo en imagen PNG" aria-label="Descargar diagrama en imagen PNG">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;" aria-hidden="true">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="7 10 12 15 17 10"></polyline>
                 <line x1="12" y1="15" x2="12" y2="3"></line>
@@ -1004,24 +1213,24 @@
         <div class="graph-legend-bar" id="graph-legend">
           <div class="legend-items">
             <div class="legend-item">
-              <span style="font-weight: 800; color: var(--primary); font-family: 'JetBrains Mono', monospace;">➔ q₀</span>
+              <span style="font-weight: 800; color: var(--primary); font-family: 'JetBrains Mono', monospace;" aria-hidden="true">➔ q₀</span>
               <span>Estado inicial</span>
             </div>
             <div class="legend-item">
-              <div class="legend-circle"></div>
+              <div class="legend-circle" aria-hidden="true"></div>
               <span>Estado normal</span>
             </div>
             <div class="legend-item">
-              <div class="legend-circle legend-final"></div>
+              <div class="legend-circle legend-final" aria-hidden="true"></div>
               <span>Estado de aceptación (F)</span>
             </div>
             <div class="legend-item">
-              <span style="display:inline-block; width:12px; height:12px; border-radius:50%; border:2px dashed var(--amber); background:var(--amber-subtle);"></span>
+              <span style="display:inline-block; width:12px; height:12px; border-radius:50%; border:2px dashed var(--amber); background:var(--amber-subtle);" aria-hidden="true"></span>
               <span>Activo en simulación</span>
             </div>
           </div>
           <div class="legend-hint">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <circle cx="12" cy="12" r="10"></circle>
               <line x1="12" y1="16" x2="12" y2="12"></line>
               <line x1="12" y1="8" x2="12.01" y2="8"></line>
@@ -1034,7 +1243,7 @@
         <div class="simulator-card" id="simulator-container">
           <div class="sim-header">
             <h3>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <circle cx="12" cy="12" r="10"></circle>
                 <polygon points="10 8 16 12 10 16 10 8"></polygon>
               </svg>
@@ -1042,14 +1251,15 @@
             </h3>
             <div class="sim-helper-chips">
               <span>Insertar en prueba:</span>
-              <span class="sim-chip" data-char="λ" title="Evaluar cadena vacía">λ (vacía)</span>
+              <button type="button" class="sim-chip" data-char="λ" title="Evaluar cadena vacía" aria-label="Insertar cadena vacía lambda">λ (vacía)</button>
               <span id="alphabet-chips-container"></span>
             </div>
           </div>
 
           <div class="sim-input-row">
-            <input type="text" id="sim-input" placeholder="Ingresa la cadena a probar (ej. aab, b; o deja vacío para λ)">
-            <button class="btn btn-primary" id="btn-test-string">
+            <label for="sim-input" class="sr-only">Cadena de entrada para evaluación en el autómata</label>
+            <input type="text" id="sim-input" placeholder="Ingresa la cadena a probar (ej. aab, b; o deja vacío para λ)" spellcheck="false" autocomplete="off">
+            <button class="btn btn-primary" id="btn-test-string" aria-label="Evaluar pertenencia de la cadena en el autómata">
               Evaluar Cadena
             </button>
           </div>
@@ -1060,7 +1270,7 @@
     </div>
 
     <!-- TAB 2: MATRIZ DE TRANSICIONES -->
-    <div id="tab-matrix" class="tab-content" role="tabpanel">
+    <div id="tab-matrix" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-matrix">
       <div class="card">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
           <div>
@@ -1074,20 +1284,20 @@
           </div>
         </div>
 
-        <div class="table-container" id="matrix-container">
+        <div class="table-container" id="matrix-container" tabindex="0" role="region" aria-label="Tabla de matriz de transiciones del autómata">
           <!-- Tabla generada dinámicamente -->
         </div>
       </div>
     </div>
 
     <!-- TAB 3: FUNCIÓN FORMAL DELTA -->
-    <div id="tab-delta" class="tab-content" role="tabpanel">
+    <div id="tab-delta" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-delta">
       <div class="card">
         <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">
           Quíntupla Formal del Autómata: M = (Σ, Q, q₀, F, Δ)
         </h2>
         <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px;">
-          Definición matemática rigurosa siguiendo las convenciones del texto de Rodrigo De Castro.
+          Definición matemática rigurosa siguiendo las convenciones del texto de Rodrigo De Castro Korgi.
         </p>
 
         <!-- CARDS DE LA 5-TUPLA -->
@@ -1843,9 +2053,9 @@
       document.getElementById("matrix-dimension").textContent = `${afn.Q.length} × ${columnas.length}`;
 
       let html = '<table class="matrix-table"><thead><tr>';
-      html += '<th>Estado (Q)</th>';
+      html += '<th scope="col">Estado (Q)</th>';
       for (let c of columnas) {
-        html += `<th>${c}</th>`;
+        html += `<th scope="col">${c}</th>`;
       }
       html += '</tr></thead><tbody>';
 
@@ -1856,7 +2066,7 @@
         let suffix = isFinal ? " *" : "";
         let finalClass = isFinal ? " is-final" : "";
 
-        html += `<tr><td class="state-cell${finalClass}">${prefix}${q}${suffix}</td>`;
+        html += `<tr><th scope="row" class="state-cell${finalClass}">${prefix}${q}${suffix}</th>`;
 
         for (let c of columnas) {
           let destinos = [];
@@ -1918,10 +2128,12 @@
       const container = document.getElementById("alphabet-chips-container");
       container.innerHTML = "";
       for (let s of afn.Sigma) {
-        let chip = document.createElement("span");
+        let chip = document.createElement("button");
+        chip.type = "button";
         chip.className = "sim-chip";
         chip.textContent = s;
         chip.setAttribute("data-char", s);
+        chip.setAttribute("aria-label", `Insertar símbolo '${s}' en el simulador`);
         chip.addEventListener("click", () => {
           const input = document.getElementById("sim-input");
           input.value += s;
@@ -2007,17 +2219,20 @@
       });
     }
 
-    // Pestañas (Tabs)
-    document.querySelectorAll(".tab-btn").forEach((btn) => {
+    // Pestañas (Tabs) con navegación por teclado accesible
+    const tabButtons = document.querySelectorAll(".tab-btn");
+    tabButtons.forEach((btn, index) => {
       btn.addEventListener("click", () => {
-        document.querySelectorAll(".tab-btn").forEach((b) => {
+        tabButtons.forEach((b) => {
           b.classList.remove("active");
           b.setAttribute("aria-selected", "false");
+          b.setAttribute("tabindex", "-1");
         });
         document.querySelectorAll(".tab-content").forEach((c) => c.classList.remove("active"));
 
         btn.classList.add("active");
         btn.setAttribute("aria-selected", "true");
+        btn.setAttribute("tabindex", "0");
         const targetTab = document.getElementById(btn.getAttribute("data-tab"));
         if (targetTab) {
           targetTab.classList.add("active");
@@ -2026,6 +2241,22 @@
         if (btn.getAttribute("data-tab") === "tab-graph") {
           initCanvas();
           drawGraph();
+        }
+      });
+
+      // Navegación con flechas izquierda/derecha entre tabs (WAI-ARIA Tab Pattern)
+      btn.addEventListener("keydown", (e) => {
+        let newIndex = null;
+        if (e.key === "ArrowRight") {
+          newIndex = (index + 1) % tabButtons.length;
+        } else if (e.key === "ArrowLeft") {
+          newIndex = (index - 1 + tabButtons.length) % tabButtons.length;
+        }
+
+        if (newIndex !== null) {
+          e.preventDefault();
+          tabButtons[newIndex].focus();
+          tabButtons[newIndex].click();
         }
       });
     });
@@ -2061,7 +2292,7 @@
       res.pasos.forEach((p, idx) => {
         let estStr = p.estados.length > 0 ? `{ ${p.estados.join(", ")} }` : "∅";
         html += `
-          <div class="trace-item" data-step-idx="${idx}" title="Ver estados activos en el grafo">
+          <div class="trace-item" tabindex="0" role="button" data-step-idx="${idx}" title="Ver estados activos en el grafo" aria-label="Paso ${p.paso}: ${p.accion}, estados activos ${estStr}">
             <span class="trace-step-badge">Paso ${p.paso}</span>
             <span style="flex:1;">${p.accion}</span>
             <span class="trace-state-set">${estStr}</span>
@@ -2072,14 +2303,21 @@
 
       resultDiv.innerHTML = html;
 
-      // Click en cada paso de la traza para resaltar esos estados
+      // Click o Enter en cada paso de la traza para resaltar esos estados
       resultDiv.querySelectorAll(".trace-item").forEach((item) => {
-        item.addEventListener("click", () => {
+        const selectStep = () => {
           let sIdx = parseInt(item.getAttribute("data-step-idx"));
           let st = res.pasos[sIdx];
           if (st) {
             highlightedStates = new Set(st.estados);
             drawGraph();
+          }
+        };
+        item.addEventListener("click", selectStep);
+        item.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            selectStep();
           }
         });
       });
